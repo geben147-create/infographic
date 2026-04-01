@@ -1,6 +1,6 @@
 """Test fixtures — skeletal scaffold. Plan 01-04 fills in full implementations."""
 import pytest
-from sqlmodel import SQLModel, Session, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 
 @pytest.fixture
