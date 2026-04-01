@@ -12,7 +12,9 @@ RTX 4070 8GB + 클라우드 하이브리드 환경에서 동작하는 다채널 
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ **ORCH-01~03**: Temporal 워크플로우 오케스트레이션 + typed worker pools (GPU/CPU/API) + durable retry — Validated in Phase 1: Infrastructure
+- ✓ **DATA-01~03**: Google Sheets → SQLite 동기화 + 파이프라인 상태 SQLite 전용 관리 + 결과 역동기화 — Validated in Phase 1: Infrastructure
+- ✓ **FILE-01~02**: data/pipeline/{run_id}/ 디렉토리 구조 + cleanup activity — Validated in Phase 1: Infrastructure
 
 ### Active
 
@@ -80,4 +82,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-01 after initialization*
+*Last updated: 2026-04-02 after Phase 1: Infrastructure completion*
