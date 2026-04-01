@@ -30,7 +30,7 @@
 
 - [x] **DATA-01**: Google Sheets에서 콘텐츠 입력 데이터를 SQLite로 동기화한다 (Sheets는 UI만, SQLite가 SSOT)
 - [x] **DATA-02**: 파이프라인 실행 중 모든 상태/메타데이터는 SQLite에만 읽기/쓰기한다
-- [ ] **DATA-03**: 파이프라인 완료 후 결과를 Sheets에 역동기화한다 (YouTube URL, 상태)
+- [x] **DATA-03**: 파이프라인 완료 후 결과를 Sheets에 역동기화한다 (YouTube URL, 상태)
 
 ### Orchestration (ORCH)
 
@@ -80,7 +80,7 @@
 | ORCH-03 | Phase 1 | Pending |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
-| DATA-03 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Complete |
 | FILE-01 | Phase 1 | Pending |
 | FILE-02 | Phase 1 | Pending |
 | PIPE-01 | Phase 2 | Pending |
