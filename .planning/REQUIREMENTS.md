@@ -34,9 +34,9 @@
 
 ### Orchestration (ORCH)
 
-- [ ] **ORCH-01**: Temporal 워크플로우가 전체 파이프라인을 오케스트레이션한다 (Activity-per-Service 패턴)
+- [x] **ORCH-01**: Temporal 워크플로우가 전체 파이프라인을 오케스트레이션한다 (Activity-per-Service 패턴)
 - [x] **ORCH-02**: GPU/CPU/API 워커 풀을 Temporal Task Queue로 분리한다 (GPU maxConcurrent=1)
-- [ ] **ORCH-03**: 실패 시 Temporal의 durable execution으로 해당 Activity만 재시도한다
+- [x] **ORCH-03**: 실패 시 Temporal의 durable execution으로 해당 Activity만 재시도한다
 
 ### Quality & Operations (OPS)
 
@@ -49,8 +49,8 @@
 
 ### File Management (FILE)
 
-- [ ] **FILE-01**: 파이프라인 아티팩트는 `/data/pipeline/{workflow_run_id}/` 구조를 따른다
-- [ ] **FILE-02**: 파이프라인 완료 후 중간 파일을 정리하는 cleanup Activity가 있다
+- [x] **FILE-01**: 파이프라인 아티팩트는 `/data/pipeline/{workflow_run_id}/` 구조를 따른다
+- [x] **FILE-02**: 파이프라인 완료 후 중간 파일을 정리하는 cleanup Activity가 있다
 
 ## v2 Requirements (Deferred)
 
@@ -75,14 +75,14 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| ORCH-01 | Phase 1 | Pending |
+| ORCH-01 | Phase 1 | Complete |
 | ORCH-02 | Phase 1 | Complete |
-| ORCH-03 | Phase 1 | Pending |
+| ORCH-03 | Phase 1 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Pending |
-| FILE-01 | Phase 1 | Pending |
-| FILE-02 | Phase 1 | Pending |
+| FILE-01 | Phase 1 | Complete |
+| FILE-02 | Phase 1 | Complete |
 | PIPE-01 | Phase 2 | Pending |
 | PIPE-02 | Phase 2 | Pending |
 | PIPE-03 | Phase 2 | Pending |

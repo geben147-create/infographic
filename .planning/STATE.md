@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-infrastructure-01-01-PLAN.md
-last_updated: "2026-04-01T23:16:54.291Z"
+stopped_at: Completed 01-infrastructure/01-02-PLAN.md
+last_updated: "2026-04-01T23:26:03.292Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -53,7 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-infrastructure P01 | 9 | 4 tasks | 17 files |
-| Phase 01-infrastructure P01 | 9 | 4 tasks | 17 files |
+| Phase 01-infrastructure P02 | 6 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -70,9 +70,9 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure]: Alembic migration uses sa.String() instead of sqlmodel.sql.sqltypes.AutoString() to avoid missing import at migration time
 - [Phase 01-infrastructure]: Temporal Web UI mapped to 8081:8080 to avoid port 8080 conflict
 - [Phase 01-infrastructure]: db_service upsert uses select-first pattern on sheets_row_id as stable natural key
-- [Phase 01-infrastructure]: Settings extra=ignore to tolerate pre-existing .env vars without failing
-- [Phase 01-infrastructure]: Temporal Web UI mapped to 8081:8080 to avoid port 8080 conflict
-- [Phase 01-infrastructure]: google_sheets_credentials defaults to empty string for graceful app startup without Sheets config
+- [Phase 01-infrastructure]: PipelineValidationWorkflow registered on gpu-queue worker: workflow is thin orchestration, GPU worker hosts it to co-locate with GPU activity registration
+- [Phase 01-infrastructure]: String-based activity names in execute_activity() for cross-queue calls: activity not imported on workflow worker, string name matches @activity.defn registration
+- [Phase 01-infrastructure]: ApplicationError(non_retryable=False) for retry test: activity.complete_with_error does not exist in Temporal Python SDK
 
 ### Pending Todos
 
@@ -86,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T23:16:54.283Z
-Stopped at: Completed 01-infrastructure-01-01-PLAN.md
+Last session: 2026-04-01T23:26:03.286Z
+Stopped at: Completed 01-infrastructure/01-02-PLAN.md
 Resume file: None
