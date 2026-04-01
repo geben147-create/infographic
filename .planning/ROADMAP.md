@@ -34,7 +34,7 @@ Plans:
 - [x] 01-01-PLAN.md — Project scaffold + Config + DB models + Alembic
 - [ ] 01-02-PLAN.md — Temporal workers + Validation workflow + Activities
 - [x] 01-03-PLAN.md — FastAPI app + Sheets sync + API routes
-- [ ] 01-04-PLAN.md — Integration tests + End-to-end validation
+- [x] 01-04-PLAN.md — Integration tests + End-to-end validation
 
 ### Phase 2: Content Pipeline
 **Goal**: A single topic input produces a complete YouTube video with title, description, tags, and thumbnail — uploaded automatically — for any configured channel.
