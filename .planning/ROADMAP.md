@@ -32,8 +32,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Project scaffold + Config + DB models + Alembic
-- [x] 01-02-PLAN.md — Temporal workers + Validation workflow + Activities
-- [ ] 01-03-PLAN.md — FastAPI app + Sheets sync + API routes
+- [ ] 01-02-PLAN.md — Temporal workers + Validation workflow + Activities
+- [x] 01-03-PLAN.md — FastAPI app + Sheets sync + API routes
 - [ ] 01-04-PLAN.md — Integration tests + End-to-end validation
 
 ### Phase 2: Content Pipeline

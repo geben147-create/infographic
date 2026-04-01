@@ -37,3 +37,8 @@ select = ["E", "F", "I"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.0",
+]

@@ -30,13 +30,13 @@
 
 - [x] **DATA-01**: Google Sheets에서 콘텐츠 입력 데이터를 SQLite로 동기화한다 (Sheets는 UI만, SQLite가 SSOT)
 - [x] **DATA-02**: 파이프라인 실행 중 모든 상태/메타데이터는 SQLite에만 읽기/쓰기한다
-- [ ] **DATA-03**: 파이프라인 완료 후 결과를 Sheets에 역동기화한다 (YouTube URL, 상태)
+- [x] **DATA-03**: 파이프라인 완료 후 결과를 Sheets에 역동기화한다 (YouTube URL, 상태)
 
 ### Orchestration (ORCH)
 
-- [x] **ORCH-01**: Temporal 워크플로우가 전체 파이프라인을 오케스트레이션한다 (Activity-per-Service 패턴)
+- [ ] **ORCH-01**: Temporal 워크플로우가 전체 파이프라인을 오케스트레이션한다 (Activity-per-Service 패턴)
 - [x] **ORCH-02**: GPU/CPU/API 워커 풀을 Temporal Task Queue로 분리한다 (GPU maxConcurrent=1)
-- [x] **ORCH-03**: 실패 시 Temporal의 durable execution으로 해당 Activity만 재시도한다
+- [ ] **ORCH-03**: 실패 시 Temporal의 durable execution으로 해당 Activity만 재시도한다
 
 ### Quality & Operations (OPS)
 
@@ -49,8 +49,8 @@
 
 ### File Management (FILE)
 
-- [x] **FILE-01**: 파이프라인 아티팩트는 `/data/pipeline/{workflow_run_id}/` 구조를 따른다
-- [x] **FILE-02**: 파이프라인 완료 후 중간 파일을 정리하는 cleanup Activity가 있다
+- [ ] **FILE-01**: 파이프라인 아티팩트는 `/data/pipeline/{workflow_run_id}/` 구조를 따른다
+- [ ] **FILE-02**: 파이프라인 완료 후 중간 파일을 정리하는 cleanup Activity가 있다
 
 ## v2 Requirements (Deferred)
 
@@ -75,14 +75,14 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| ORCH-01 | Phase 1 | Complete |
+| ORCH-01 | Phase 1 | Pending |
 | ORCH-02 | Phase 1 | Complete |
-| ORCH-03 | Phase 1 | Complete |
+| ORCH-03 | Phase 1 | Pending |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
-| DATA-03 | Phase 1 | Pending |
-| FILE-01 | Phase 1 | Complete |
-| FILE-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
+| FILE-01 | Phase 1 | Pending |
+| FILE-02 | Phase 1 | Pending |
 | PIPE-01 | Phase 2 | Pending |
 | PIPE-02 | Phase 2 | Pending |
 | PIPE-03 | Phase 2 | Pending |
