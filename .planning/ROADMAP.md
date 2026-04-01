@@ -12,7 +12,7 @@ Three phases deliver the project: first, lay the infrastructure skeleton (Tempor
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure** - Temporal orchestration, SQLite data layer, worker pools, artifact directory structure
+- [x] **Phase 1: Infrastructure** - Temporal orchestration, SQLite data layer, worker pools, artifact directory structure (completed 2026-04-01)
 - [ ] **Phase 2: Content Pipeline** - End-to-end script → image/video → TTS → FFmpeg → YouTube, multi-channel config, optional fal.ai
 - [ ] **Phase 3: Production Operations** - Quality gate, batch processing, content calendar, cost tracking, status dashboard
 
@@ -28,13 +28,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Results (YouTube URL, status) written to SQLite are reflected back in the originating Sheets row after pipeline completion
   4. A pipeline run creates the `/data/pipeline/{workflow_run_id}/` directory tree and a cleanup activity removes intermediate files after completion
   5. GPU worker maxConcurrent=1 is enforced — submitting two GPU tasks at once results in queued sequential execution, not parallel
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Project scaffold + Config + DB models + Alembic
-- [ ] 01-02-PLAN.md — Temporal workers + Validation workflow + Activities
+- [x] 01-02-PLAN.md — Temporal workers + Validation workflow + Activities
 - [x] 01-03-PLAN.md — FastAPI app + Sheets sync + API routes
-- [ ] 01-04-PLAN.md — Integration tests + End-to-end validation
+- [x] 01-04-PLAN.md — Integration tests + End-to-end validation
 
 ### Phase 2: Content Pipeline
 **Goal**: A single topic input produces a complete YouTube video with title, description, tags, and thumbnail — uploaded automatically — for any configured channel.
@@ -69,6 +69,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 2/4 | In Progress|  |
+| 1. Infrastructure | 4/4 | Complete   | 2026-04-01 |
 | 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Production Operations | 0/TBD | Not started | - |
