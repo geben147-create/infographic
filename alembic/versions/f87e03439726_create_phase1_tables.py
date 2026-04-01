@@ -7,9 +7,9 @@ Create Date: 2026-04-02 08:05:59.268023
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = 'f87e03439726'
@@ -31,7 +31,12 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_content_items_sheets_row_id'), 'content_items', ['sheets_row_id'], unique=True)
+    op.create_index(
+        op.f('ix_content_items_sheets_row_id'),
+        'content_items',
+        ['sheets_row_id'],
+        unique=True,
+    )
     op.create_table('sync_log',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('synced_at', sa.DateTime(), nullable=False),
@@ -53,7 +58,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['content_item_id'], ['content_items.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_pipeline_runs_workflow_id'), 'pipeline_runs', ['workflow_id'], unique=True)
+    op.create_index(
+        op.f('ix_pipeline_runs_workflow_id'),
+        'pipeline_runs',
+        ['workflow_id'],
+        unique=True,
+    )
     # ### end Alembic commands ###
 
 
