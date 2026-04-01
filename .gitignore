@@ -19,3 +19,7 @@ data/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Test artifacts
+.coverage
+.temporal-test-server/

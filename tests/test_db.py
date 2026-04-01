@@ -1,12 +1,14 @@
-"""DB CRUD tests — SQLite upsert, pipeline_run CRUD, sync_log, directory setup/cleanup."""
+"""DB CRUD tests — SQLite upsert, pipeline_run CRUD, sync_log, directory setup."""
 import asyncio
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 from src.activities.cleanup import CleanupInput, cleanup_intermediate_files
-from src.activities.pipeline import PIPELINE_SUBDIRS, SetupDirsInput, setup_pipeline_dirs
+from src.activities.pipeline import (
+    PIPELINE_SUBDIRS,
+    SetupDirsInput,
+    setup_pipeline_dirs,
+)
 from src.services.db_service import (
     create_pipeline_run,
     create_sync_log,
