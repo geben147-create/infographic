@@ -75,6 +75,7 @@ Stand up the project skeleton so a Temporal workflow can run end-to-end through 
 - Whether to use `temporalio` SDK 1.x connection pooling defaults or customize
 - Specific Pydantic Settings field names (beyond what's named above)
 - Docker Compose service names and port numbers (Temporal default: 7233, Web UI: 8080, FastAPI: 8000)
+- **TDD infrastructure-scaffolding exception:** Phase 1 is greenfield project setup (no existing code to test against). Skeletal test files with `pytest.mark.skip` markers are created in Plan 01-01 Task 0 before any implementation code, satisfying the TDD-first spirit. Plan 01-04 replaces the skip stubs with full test implementations after the production code exists. This is a pragmatic exception for infrastructure scaffolding only — feature phases (Phase 2+) must follow strict RED-GREEN TDD.
 
 </decisions>
 
