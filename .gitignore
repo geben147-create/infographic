@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Environment
+.env
+
+# Data (per D-15)
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# uv
+.python-version
+
+# Alembic
+alembic/versions/*.pyc
