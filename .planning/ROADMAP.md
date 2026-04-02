@@ -12,7 +12,7 @@ Three phases deliver the project: first, lay the infrastructure skeleton (Tempor
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Infrastructure** - Temporal orchestration, SQLite data layer, worker pools, artifact directory structure (completed 2026-04-01)
+- [x] **Phase 1: Infrastructure** - Temporal orchestration, SQLite data layer, worker pools, artifact directory structure (completed 2026-04-01)
 - [ ] **Phase 2: Content Pipeline** - End-to-end script → image/video → TTS → FFmpeg → YouTube, multi-channel config, optional fal.ai
 - [ ] **Phase 3: Production Operations** - Quality gate, batch processing, content calendar, cost tracking, status dashboard
 
@@ -37,17 +37,25 @@ Plans:
 - [x] 01-04-PLAN.md — Integration tests + End-to-end validation
 
 ### Phase 2: Content Pipeline
-**Goal**: A single topic input produces a complete YouTube video with title, description, tags, and thumbnail — uploaded automatically — for any configured channel.
+**Goal**: A single topic input produces a complete YouTube video with title, description, tags, and thumbnail — uploaded automatically — for any configured channel, using provider-swappable AI models.
 **Depends on**: Phase 1
 **Requirements**: PIPE-01, PIPE-02, PIPE-03, PIPE-04, PIPE-05, PIPE-06, VGEN-01, VGEN-02, VGEN-03, CHAN-01, CHAN-02
 **Success Criteria** (what must be TRUE):
-  1. Entering a topic keyword produces a structured script JSON (title, description, per-scene narration + image prompt + duration, tags) via Qwen3-14B
-  2. Each scene yields a ComfyUI SDXL image; Korean narration yields an IndexTTS-2 audio file; FFmpeg assembles them into an MP4 with transitions using NVENC encoding
-  3. The finished video uploads to YouTube with correct metadata and a SDXL + text-overlay thumbnail attached
+  1. Entering a topic keyword produces a structured script JSON (title, description, per-scene narration + image prompt + duration, tags) via LLM provider
+  2. Each scene yields an image via provider; Korean narration yields a TTS audio file; FFmpeg assembles them into an MP4 with transitions using NVENC encoding
+  3. The finished video uploads to YouTube with correct metadata and a thumbnail with Korean text overlay attached
   4. When a fal.ai API key is set and VGEN is enabled in channel config, scenes use AI video clips; when the key is absent or VGEN is off, Ken Burns effects on still images are used instead — and the per-video cost is shown in real time and written to cost_log.json
   5. Two channels with different checkpoints, TTS voices, and prompt templates both produce valid videos through the same workflow code (channel_id parameter only)
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 7 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Provider abstraction + Channel config + Pydantic models + API schemas
+- [ ] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
+- [ ] 02-03-PLAN.md — Script generation (LLM) + TTS audio activities
+- [ ] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
+- [ ] 02-05-PLAN.md — FFmpeg video assembly + Thumbnail generation
+- [ ] 02-06-PLAN.md — YouTube upload + ContentPipelineWorkflow + API endpoints + Worker registration
+- [ ] 02-07-PLAN.md — Integration tests + Multi-channel validation + Human verification
 
 ### Phase 3: Production Operations
 **Goal**: The operator can review and approve videos before they go live, queue a week of content for overnight generation, schedule future publish dates, and see cost and status at a glance.
@@ -70,5 +78,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
-| 2. Content Pipeline | 0/TBD | Not started | - |
+| 2. Content Pipeline | 0/7 | Planning complete | - |
 | 3. Production Operations | 0/TBD | Not started | - |
