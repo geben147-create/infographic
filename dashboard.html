@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Pipeline Dashboard — Phase 2 Complete</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --accent: #6366f1;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-size: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header .subtitle { color: var(--muted); font-size: 14px; }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stat-card .label {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .green { color: var(--green); }
+  .blue { color: var(--blue); }
+  .cyan { color: var(--cyan); }
+  .yellow { color: var(--yellow); }
+  .accent { color: var(--accent); }
+
+  .section { margin-bottom: 32px; }
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .icon { font-size: 20px; }
+
+  /* Pipeline Flow */
+  .pipeline-flow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 20px 0;
+  }
+  .pipeline-step {
+    background: var(--card);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    padding: 16px 14px;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pipeline-step .step-icon { font-size: 28px; margin-bottom: 6px; }
+  .pipeline-step .step-name { font-size: 11px; font-weight: 600; }
+  .pipeline-step .step-file { font-size: 9px; color: var(--muted); margin-top: 4px; }
+  .arrow {
+    color: var(--green);
+    font-size: 20px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* Architecture Grid */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .arch-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .arch-card h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .file-list {
+    list-style: none;
+    font-size: 12px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  .file-list li {
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    color: var(--muted);
+  }
+  .file-list li:hover { background: rgba(99,102,241,0.1); color: var(--text); }
+  .file-list .new { color: var(--green); }
+  .file-list .existing { color: var(--muted); }
+
+  /* API Table */
+  .api-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .api-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .api-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .method {
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  .method.get { background: rgba(34,197,94,0.15); color: var(--green); }
+  .method.post { background: rgba(99,102,241,0.15); color: var(--accent); }
+  .method.delete { background: rgba(239,68,68,0.15); color: var(--red); }
+  .path { font-family: monospace; color: var(--cyan); }
+
+  /* Test Results */
+  .test-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .test-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+  }
+  .test-file {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .test-file .name { font-family: monospace; }
+  .test-file .count { color: var(--green); font-weight: 600; }
+
+  /* Cost Estimate */
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .cost-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .cost-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .local-badge {
+    background: rgba(34,197,94,0.15);
+    color: var(--green);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .cloud-badge {
+    background: rgba(234,179,8,0.15);
+    color: var(--yellow);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Channel Cards */
+  .channel-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .channel-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .channel-card h3 { font-size: 16px; margin-bottom: 12px; }
+  .channel-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(42,45,58,0.5);
+  }
+  .channel-detail .key { color: var(--muted); }
+  .channel-detail .val { font-family: monospace; }
+
+  /* Phase Progress */
+  .phase-timeline {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+  }
+  .phase-block {
+    flex: 1;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .phase-block:first-child { border-radius: 12px 0 0 12px; }
+  .phase-block:last-child { border-radius: 0 12px 12px 0; }
+  .phase-block.done { background: rgba(34,197,94,0.1); border-color: var(--green); }
+  .phase-block.current { background: rgba(99,102,241,0.15); border-color: var(--accent); }
+  .phase-block.upcoming { background: var(--card); }
+  .phase-block .phase-num { font-size: 24px; font-weight: 700; }
+  .phase-block .phase-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  @media (max-width: 768px) {
+    .channel-cards { grid-template-columns: 1fr; }
+    .pipeline-flow { flex-wrap: wrap; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>YouTube Video Automation Pipeline</h1>
+  <div class="subtitle">Phase 2: Content Pipeline Complete | 2026-04-02 | 184 Tests Passing</div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="number green">184</div>
+    <div class="label">Tests Passed</div>
+  </div>
+  <div class="stat-card">
+    <div class="number blue">47</div>
+    <div class="label">Source Files</div>
+  </div>
+  <div class="stat-card">
+    <div class="number cyan">7</div>
+    <div class="label">API Endpoints</div>
+  </div>
+  <div class="stat-card">
+    <div class="number accent">8</div>
+    <div class="label">Pipeline Activities</div>
+  </div>
+  <div class="stat-card">
+    <div class="number yellow">$1.25</div>
+    <div class="label">Est. Cost / Video</div>
+  </div>
+</div>
+
+<!-- Phase Progress -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#9654;</span> Project Progress</div>
+  <div class="phase-timeline">
+    <div class="phase-block done">
+      <div class="phase-num green">1</div>
+      <div class="phase-label">Infrastructure<br>4/4 plans &bull; Complete</div>
+    </div>
+    <div class="phase-block current">
+      <div class="phase-num accent">2</div>
+      <div class="phase-label">Content Pipeline<br>7/7 plans &bull; Verifying</div>
+    </div>
+    <div class="phase-block upcoming">
+      <div class="phase-num" style="color:var(--muted)">3</div>
+      <div class="phase-label">Production Ops<br>TBD &bull; Not started</div>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline Flow -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#128253;</span> Content Pipeline Flow</div>
+  <div class="pipeline-flow">
+    <div class="pipeline-step">
+      <div class="step-icon">&#128221;</div>
+      <div class="step-name">Topic Input</div>
+      <div class="step-file">API trigger</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#129302;</div>
+      <div class="step-name">Script Gen</div>
+      <div class="step-file">Ollama / Qwen3-14B</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#127912;</div>
+      <div class="step-name">Image Gen</div>
+      <div class="step-file">ComfyUI / fal.ai</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#127908;</div>
+      <div class="step-name">TTS Audio</div>
+      <div class="step-file">CosyVoice / Kokoro</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#127916;</div>
+      <div class="step-name">Video Gen</div>
+      <div class="step-file">fal.ai WAN / Ken Burns</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#127910;</div>
+      <div class="step-name">FFmpeg Assembly</div>
+      <div class="step-file">NVENC / libx264</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step">
+      <div class="step-icon">&#128444;</div>
+      <div class="step-name">Thumbnail</div>
+      <div class="step-file">Pillow + Korean text</div>
+    </div>
+    <div class="arrow">&#10132;</div>
+    <div class="pipeline-step" style="border-color: var(--red);">
+      <div class="step-icon">&#9654;</div>
+      <div class="step-name">YouTube Upload</div>
+      <div class="step-file">Data API v3</div>
+    </div>
+  </div>
+</div>
+
+<!-- API Endpoints -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#128268;</span> API Endpoints</div>
+  <div class="arch-card">
+    <table class="api-table">
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="path">/api/pipeline/trigger</td>
+          <td>Start pipeline: { topic, channel_id }</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/api/pipeline/status/{wf_id}</td>
+          <td>Poll status, scene progress, cost, YouTube URL</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/api/pipeline/cost/{wf_id}</td>
+          <td>Per-service cost breakdown (fal.ai, etc.)</td>
+        </tr>
+        <tr>
+          <td><span class="method delete">DELETE</span></td>
+          <td class="path">/api/pipeline/{wf_id}</td>
+          <td>Cancel a running pipeline</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="path">/api/sync/sheets</td>
+          <td>Trigger Google Sheets sync</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/api/sync/status/{wf_id}</td>
+          <td>Check sync workflow status</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="path">/health</td>
+          <td>Health check</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Architecture -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#128450;</span> Architecture</div>
+  <div class="arch-grid">
+    <div class="arch-card">
+      <h3><span style="color:var(--accent)">&#9632;</span> Activities (Temporal)</h3>
+      <ul class="file-list">
+        <li class="new">src/activities/script_gen.py &mdash; LLM script generation</li>
+        <li class="new">src/activities/tts.py &mdash; Korean TTS audio</li>
+        <li class="new">src/activities/image_gen.py &mdash; SDXL / fal.ai images</li>
+        <li class="new">src/activities/video_gen.py &mdash; AI video / Ken Burns</li>
+        <li class="new">src/activities/video_assembly.py &mdash; FFmpeg merge</li>
+        <li class="new">src/activities/thumbnail.py &mdash; Pillow overlay</li>
+        <li class="new">src/activities/youtube_upload.py &mdash; Resumable upload</li>
+        <li class="existing">src/activities/cleanup.py &mdash; File cleanup (Phase 1)</li>
+      </ul>
+    </div>
+    <div class="arch-card">
+      <h3><span style="color:var(--cyan)">&#9632;</span> Services (Provider Layer)</h3>
+      <ul class="file-list">
+        <li class="new">src/services/ollama_client.py &mdash; OllamaProvider (Qwen3)</li>
+        <li class="new">src/services/tts_client.py &mdash; CosyVoice / Kokoro</li>
+        <li class="new">src/services/comfyui_client.py &mdash; ComfyUI WebSocket</li>
+        <li class="new">src/services/fal_client.py &mdash; fal.ai image + video</li>
+        <li class="new">src/services/cost_tracker.py &mdash; Per-video cost log</li>
+        <li class="new">src/services/provider_registry.py &mdash; Singleton registry</li>
+        <li class="existing">src/services/db_service.py &mdash; SQLite CRUD</li>
+        <li class="existing">src/services/sheets_service.py &mdash; Sheets sync</li>
+      </ul>
+    </div>
+    <div class="arch-card">
+      <h3><span style="color:var(--green)">&#9632;</span> Models & Schemas</h3>
+      <ul class="file-list">
+        <li class="new">src/models/provider.py &mdash; ABCs + ProviderType enum</li>
+        <li class="new">src/models/channel_config.py &mdash; ChannelConfig</li>
+        <li class="new">src/models/script.py &mdash; Script + ScriptScene</li>
+        <li class="new">src/schemas/pipeline.py &mdash; API request/response</li>
+        <li class="existing">src/models/content_item.py &mdash; ContentItem</li>
+        <li class="existing">src/models/pipeline_run.py &mdash; PipelineRun</li>
+      </ul>
+    </div>
+    <div class="arch-card">
+      <h3><span style="color:var(--yellow)">&#9632;</span> Config & Templates</h3>
+      <ul class="file-list">
+        <li class="new">src/channel_configs/channel_01.yaml &mdash; General (local)</li>
+        <li class="new">src/channel_configs/channel_02.yaml &mdash; Finance (fal.ai)</li>
+        <li class="new">src/prompt_templates/script_default.j2</li>
+        <li class="new">src/prompt_templates/script_finance.j2</li>
+        <li class="new">scripts/youtube_auth.py &mdash; OAuth2 setup</li>
+        <li class="new">scripts/download_font.py &mdash; NotoSansKR</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Channels -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#128250;</span> Channel Configurations</div>
+  <div class="channel-cards">
+    <div class="channel-card">
+      <h3>&#127760; Channel 01: General</h3>
+      <div class="channel-detail"><span class="key">LLM</span><span class="val">local:qwen3-14b</span></div>
+      <div class="channel-detail"><span class="key">Image</span><span class="val">local:sdxl <span class="local-badge">LOCAL</span></span></div>
+      <div class="channel-detail"><span class="key">TTS</span><span class="val">local:cosyvoice2 <span class="local-badge">LOCAL</span></span></div>
+      <div class="channel-detail"><span class="key">Video</span><span class="val">Ken Burns (vgen off)</span></div>
+      <div class="channel-detail"><span class="key">Template</span><span class="val">script_default.j2</span></div>
+      <div class="channel-detail"><span class="key">Est. Cost</span><span class="val green">$0.00/video</span></div>
+    </div>
+    <div class="channel-card">
+      <h3>&#128176; Channel 02: Finance</h3>
+      <div class="channel-detail"><span class="key">LLM</span><span class="val">local:qwen3-14b</span></div>
+      <div class="channel-detail"><span class="key">Image</span><span class="val">fal:flux-pro <span class="cloud-badge">CLOUD</span></span></div>
+      <div class="channel-detail"><span class="key">TTS</span><span class="val">local:kokoro <span class="local-badge">LOCAL</span></span></div>
+      <div class="channel-detail"><span class="key">Video</span><span class="val">fal:wan-2.2 <span class="cloud-badge">CLOUD</span></span></div>
+      <div class="channel-detail"><span class="key">Template</span><span class="val">script_finance.j2</span></div>
+      <div class="channel-detail"><span class="key">Est. Cost</span><span class="val yellow">~$1.25-2.50/video</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Cost Estimate -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#128176;</span> Per-Video Cost Estimate (Cloud Channel)</div>
+  <div class="arch-card">
+    <table class="cost-table">
+      <thead><tr><th>Step</th><th>Provider</th><th>Execution</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Script Generation</td><td>Qwen3-14B via Ollama</td><td><span class="local-badge">LOCAL</span></td><td class="green">$0.00</td></tr>
+        <tr><td>Image Gen (x10)</td><td>SDXL via ComfyUI</td><td><span class="local-badge">LOCAL</span></td><td class="green">$0.00</td></tr>
+        <tr><td>Video Clips (x5, 5s each)</td><td>WAN 2.2 via fal.ai</td><td><span class="cloud-badge">CLOUD</span></td><td class="yellow">~$1.25-2.50</td></tr>
+        <tr><td>TTS Audio</td><td>CosyVoice2 / Kokoro</td><td><span class="local-badge">LOCAL</span></td><td class="green">$0.00</td></tr>
+        <tr><td>FFmpeg Assembly</td><td>FFmpeg + NVENC</td><td><span class="local-badge">LOCAL</span></td><td class="green">$0.00</td></tr>
+        <tr><td>Thumbnail</td><td>Pillow</td><td><span class="local-badge">LOCAL</span></td><td class="green">$0.00</td></tr>
+        <tr><td>YouTube Upload</td><td>Data API v3</td><td><span class="cloud-badge">API</span></td><td class="green">$0.00</td></tr>
+        <tr style="font-weight:700; border-top: 2px solid var(--border);">
+          <td colspan="3">Total per Video</td>
+          <td class="yellow">~$1.25-2.50</td>
+        </tr>
+        <tr><td colspan="3" style="color:var(--muted)">Monthly (1/day, 5 channels)</td><td style="color:var(--muted)">~$190-380/mo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Test Results -->
+<div class="section">
+  <div class="section-title"><span class="icon">&#9989;</span> Test Results: 184/184 Passed</div>
+  <div class="test-bar"><div class="test-bar-fill" style="width: 100%"></div></div>
+  <div class="test-grid">
+    <div class="test-file"><span class="name">test_models_phase2.py</span><span class="count">21 pass</span></div>
+    <div class="test-file"><span class="name">test_script_gen.py</span><span class="count">9 pass</span></div>
+    <div class="test-file"><span class="name">test_tts.py</span><span class="count">12 pass</span></div>
+    <div class="test-file"><span class="name">test_image_gen.py</span><span class="count">12 pass</span></div>
+    <div class="test-file"><span class="name">test_video_gen.py</span><span class="count">8 pass</span></div>
+    <div class="test-file"><span class="name">test_video_assembly.py</span><span class="count">9 pass</span></div>
+    <div class="test-file"><span class="name">test_thumbnail.py</span><span class="count">8 pass</span></div>
+    <div class="test-file"><span class="name">test_youtube_upload.py</span><span class="count">9 pass</span></div>
+    <div class="test-file"><span class="name">test_content_pipeline_workflow.py</span><span class="count">31 pass</span></div>
+    <div class="test-file"><span class="name">test_pipeline_integration.py</span><span class="count">20 pass</span></div>
+    <div class="test-file"><span class="name">test_multi_channel.py</span><span class="count">11 pass</span></div>
+    <div class="test-file"><span class="name">test_workers.py</span><span class="count">10 pass</span></div>
+    <div class="test-file"><span class="name">test_db.py</span><span class="count">7 pass</span></div>
+    <div class="test-file"><span class="name">test_sheets_sync.py</span><span class="count">17 pass</span></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align: center; padding-top: 32px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px;">
+  YouTube Video Automation Pipeline &bull; Phase 2 Complete &bull; 2026-04-02
+  <br>
+  <span style="font-family: monospace;">github.com/geben147-create/full_vid-auto_4.2.26_opus</span>
+</div>
+
+</body>
+</html>
