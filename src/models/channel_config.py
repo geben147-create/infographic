@@ -41,6 +41,7 @@ class ChannelConfig(BaseModel, frozen=True):
 
     # Feature flags
     vgen_enabled: bool = False
+    quality_gate_enabled: bool = False
 
     # YouTube upload
     youtube_credentials_path: str = ""

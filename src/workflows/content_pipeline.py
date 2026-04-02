@@ -31,6 +31,9 @@ with workflow.unsafe.imports_passed_through():
     from src.activities.video_assembly import AssemblyInput, AssemblyOutput
     from src.activities.thumbnail import ThumbnailInput
 
+    # 03-01: quality gate signal payload
+    from src.schemas.pipeline import ApprovalSignal
+
 
 _RETRY_DEFAULT = RetryPolicy(
     maximum_attempts=3,
@@ -51,6 +54,7 @@ class PipelineParams(BaseModel):
     run_id: str
     topic: str
     channel_id: str
+    quality_gate_enabled: bool = False
 
 
 class PipelineResult(BaseModel):
@@ -72,6 +76,26 @@ class ContentPipelineWorkflow:
     - cpu-queue: directory setup, FFmpeg assembly, cleanup
     - api-queue: YouTube upload
     """
+
+    def __init__(self) -> None:
+        """Initialize signal state for quality gate.
+
+        CRITICAL for Temporal determinism: signal state MUST be initialized
+        in __init__, not inside run(), so signals arriving before run() starts
+        are captured correctly.
+        """
+        self._approved: bool = False
+        self._reject_reason: str = ""
+
+    @workflow.signal
+    async def approve_video(self, payload: "ApprovalSignal") -> None:
+        """Signal handler for quality gate approval/rejection.
+
+        Called by the operator via POST /api/pipeline/{id}/approve.
+        Sets _approved and _reject_reason to unblock wait_condition.
+        """
+        self._approved = payload.approved
+        self._reject_reason = payload.reason
 
     @workflow.run
     async def run(self, params: PipelineParams) -> PipelineResult:
@@ -203,6 +227,34 @@ class ContentPipelineWorkflow:
             retry_policy=_RETRY_DEFAULT,
             result_type=AssemblyOutput,
         )
+
+        # ------------------------------------------------------------------ #
+        # Step 6.5: Quality gate — wait for human approval before upload       #
+        # ------------------------------------------------------------------ #
+        if params.quality_gate_enabled:
+            import asyncio as _asyncio
+
+            try:
+                await workflow.wait_condition(
+                    lambda: self._approved or bool(self._reject_reason),
+                    timeout=timedelta(hours=24),
+                )
+            except _asyncio.TimeoutError:
+                return PipelineResult(
+                    status="timeout_rejected",
+                    video_id=None,
+                    youtube_url=None,
+                    total_cost_usd=total_cost,
+                    scenes_count=len(script.scenes),
+                )
+            if not self._approved:
+                return PipelineResult(
+                    status="rejected",
+                    video_id=None,
+                    youtube_url=None,
+                    total_cost_usd=total_cost,
+                    scenes_count=len(script.scenes),
+                )
 
         # ------------------------------------------------------------------ #
         # Step 7: Upload to YouTube (api-queue)                                #

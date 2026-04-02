@@ -14,6 +14,7 @@ tags:
   - "재테크"
   - "투자"
 vgen_enabled: true
+quality_gate_enabled: false
 youtube_credentials_path: "data/yt_token_channel_02.json"
 publish_status: private
 category_id: "22"

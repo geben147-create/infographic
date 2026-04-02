@@ -22,6 +22,7 @@ class PipelineStatus(str, Enum):
     completed = "completed"
     failed = "failed"
     unknown = "unknown"
+    waiting_approval = "waiting_approval"
 
 
 class PipelineTriggerRequest(BaseModel):
@@ -54,6 +55,28 @@ class PipelineStatusResponse(BaseModel):
     error: str | None = None
     started_at: str | None = None
     completed_at: str | None = None
+
+
+class ApprovalSignal(BaseModel):
+    """Temporal signal payload for the quality gate approval."""
+
+    approved: bool
+    reason: str = ""
+
+
+class ApproveRequest(BaseModel):
+    """POST /api/pipeline/{id}/approve — request body from operator."""
+
+    approved: bool
+    reason: str = ""
+
+
+class VideoPreviewResponse(BaseModel):
+    """GET /api/pipeline/{id}/video — metadata before streaming."""
+
+    workflow_id: str
+    video_path: str
+    file_size_bytes: int
 
 
 class CostLineItem(BaseModel):
