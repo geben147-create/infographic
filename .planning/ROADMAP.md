@@ -90,7 +90,7 @@ Plans:
 - [x] 04-01-PLAN.md — Remove YouTube auto-upload from workflow; add download endpoints; status=ready_to_upload
 - [x] 04-02-PLAN.md — Frontend dashboard (vanilla HTML/CSS/JS) — runs table, cost cards, download buttons + CORS
 - [x] 04-03-PLAN.md — Netlify deploy config + enhanced health endpoint + structured alert log
-- [ ] 04-04-PLAN.md — E2E dry-run tests + health/download endpoint tests
+- [x] 04-04-PLAN.md — E2E dry-run tests + health/download endpoint tests
 
 ## Progress
 
