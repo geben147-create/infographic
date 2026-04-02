@@ -8,9 +8,9 @@
 
 ### Core Pipeline (PIPE)
 
-- [ ] **PIPE-01**: 토픽/키워드 입력 시 Qwen3-14B(Ollama)가 구조화된 스크립트(제목, 설명, 장면별 내레이션+이미지 프롬프트+길이, 태그) JSON을 생성한다
+- [x] **PIPE-01**: 토픽/키워드 입력 시 Qwen3-14B(Ollama)가 구조화된 스크립트(제목, 설명, 장면별 내레이션+이미지 프롬프트+길이, 태그) JSON을 생성한다
 - [ ] **PIPE-02**: 스크립트의 각 장면에 대해 ComfyUI SDXL이 이미지를 생성한다 (헤드리스 API)
-- [ ] **PIPE-03**: 스크립트의 각 장면 내레이션에 대해 IndexTTS-2가 한국어 TTS 오디오를 생성한다
+- [x] **PIPE-03**: 스크립트의 각 장면 내레이션에 대해 IndexTTS-2가 한국어 TTS 오디오를 생성한다
 - [ ] **PIPE-04**: FFmpeg가 이미지+오디오+전환효과를 조립하여 최종 MP4를 생성한다 (NVENC 하드웨어 인코딩)
 - [ ] **PIPE-05**: YouTube Data API v3를 통해 메타데이터(제목, 설명, 태그, 카테고리)와 함께 자동 업로드한다
 - [ ] **PIPE-06**: 썸네일을 SDXL + Pillow 텍스트 오버레이로 자동 생성하여 업로드 시 첨부한다
@@ -83,9 +83,9 @@
 | DATA-03 | Phase 1 | Complete |
 | FILE-01 | Phase 1 | Complete |
 | FILE-02 | Phase 1 | Complete |
-| PIPE-01 | Phase 2 | Pending |
+| PIPE-01 | Phase 2 | Complete |
 | PIPE-02 | Phase 2 | Pending |
-| PIPE-03 | Phase 2 | Pending |
+| PIPE-03 | Phase 2 | Complete |
 | PIPE-04 | Phase 2 | Pending |
 | PIPE-05 | Phase 2 | Pending |
 | PIPE-06 | Phase 2 | Pending |

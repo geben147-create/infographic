@@ -46,12 +46,12 @@ Plans:
   3. The finished video uploads to YouTube with correct metadata and a thumbnail with Korean text overlay attached
   4. When a fal.ai API key is set and VGEN is enabled in channel config, scenes use AI video clips; when the key is absent or VGEN is off, Ken Burns effects on still images are used instead — and the per-video cost is shown in real time and written to cost_log.json
   5. Two channels with different checkpoints, TTS voices, and prompt templates both produce valid videos through the same workflow code (channel_id parameter only)
-**Plans:** 1/7 plans executed
+**Plans:** 3/7 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Provider abstraction + Channel config + Pydantic models + API schemas
-- [ ] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
-- [ ] 02-03-PLAN.md — Script generation (LLM) + TTS audio activities
+- [x] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
+- [x] 02-03-PLAN.md — Script generation (LLM) + TTS audio activities
 - [ ] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
 - [ ] 02-05-PLAN.md — FFmpeg video assembly + Thumbnail generation
 - [ ] 02-06-PLAN.md — YouTube upload + ContentPipelineWorkflow + API endpoints + Worker registration
@@ -78,5 +78,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
-| 2. Content Pipeline | 1/7 | In Progress|  |
+| 2. Content Pipeline | 3/7 | In Progress|  |
 | 3. Production Operations | 0/TBD | Not started | - |

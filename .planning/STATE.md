@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Wave 1 complete (02-01, 02-02)
-last_updated: "2026-04-02T01:20:00.000Z"
+stopped_at: Completed 02-content-pipeline 02-03-PLAN.md
+last_updated: "2026-04-02T01:34:24.222Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 11
-  completed_plans: 5
+  completed_plans: 7
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 02 (content-pipeline) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 02
-Last activity: 2026-04-02 -- Phase 02 execution started
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-04-02
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-infrastructure P03 | 10 | 2 tasks | 14 files |
 | Phase 01-infrastructure P04 | 814 | 2 tasks | 4 files |
 | Phase 02-content-pipeline P01 | 15 | 2 tasks | 11 files |
+| Phase 02-content-pipeline P03 | 9 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure]: Used ActivityEnvironment + source inspection instead of WorkflowEnvironment: Python subprocess spawning blocked in C:\Windows\System32 sandbox
 - [Phase 02-content-pipeline]: Lazy yaml import in load_channel_config() body — pyyaml is a Task 2 dep, module-level import blocks Task 1 tests
 - [Phase 02-content-pipeline]: ModelSpec.parse() splits on first colon only — model names can contain slashes/colons
+- [Phase 02-content-pipeline]: Module-level _synthesize helpers (not class methods) allow direct patch target in TTS tests without complex class mock setup
+- [Phase 02-content-pipeline]: ApplicationError(non_retryable=True) on missing TTS install — Temporal should not retry missing-library failures
+- [Phase 02-content-pipeline]: NotImplementedError for non-local LLM providers in generate_script — cloud LLM deferred to Plan 07
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:17:14.882Z
-Stopped at: Completed 02-content-pipeline 02-01-PLAN.md
+Last session: 2026-04-02T01:34:24.217Z
+Stopped at: Completed 02-content-pipeline 02-03-PLAN.md
 Resume file: None
