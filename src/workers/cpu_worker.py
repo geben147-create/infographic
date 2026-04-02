@@ -12,7 +12,9 @@ from temporalio.worker import Worker
 from src.activities.cleanup import cleanup_intermediate_files
 from src.activities.pipeline import setup_pipeline_dirs
 from src.activities.stubs import stub_cpu_activity
+from src.activities.video_assembly import assemble_video
 from src.config import settings
+from src.workflows.content_pipeline import ContentPipelineWorkflow
 
 
 async def main() -> None:
@@ -24,8 +26,13 @@ async def main() -> None:
     worker = Worker(
         client,
         task_queue="cpu-queue",
-        workflows=[],
-        activities=[stub_cpu_activity, setup_pipeline_dirs, cleanup_intermediate_files],
+        workflows=[ContentPipelineWorkflow],
+        activities=[
+            stub_cpu_activity,
+            setup_pipeline_dirs,
+            cleanup_intermediate_files,
+            assemble_video,
+        ],
         max_concurrent_activities=4,
     )
     print("CPU worker started on cpu-queue (max_concurrent_activities=4)")

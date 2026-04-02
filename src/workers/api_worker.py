@@ -10,7 +10,9 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
 from src.activities.sheets import sync_sheets_to_sqlite, write_results_to_sheets
+from src.activities.youtube_upload import upload_to_youtube
 from src.config import settings
+from src.workflows.content_pipeline import ContentPipelineWorkflow
 
 
 async def main() -> None:
@@ -22,8 +24,12 @@ async def main() -> None:
     worker = Worker(
         client,
         task_queue="api-queue",
-        workflows=[],
-        activities=[sync_sheets_to_sqlite, write_results_to_sheets],
+        workflows=[ContentPipelineWorkflow],
+        activities=[
+            sync_sheets_to_sqlite,
+            write_results_to_sheets,
+            upload_to_youtube,
+        ],
         max_concurrent_activities=8,
     )
     print("API worker started on api-queue (max_concurrent_activities=8)")
