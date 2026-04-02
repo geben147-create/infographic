@@ -84,12 +84,12 @@ Plans:
   3. The operator can download the assembled video and thumbnail directly from the dashboard, then upload manually to YouTube Studio
   4. A `/api/health` endpoint returns system status (Temporal connection, SQLite, disk space); critical errors (Temporal unreachable, disk full) are logged to a structured alert log
   5. E2E verification confirms ContentPipelineWorkflow source no longer references upload_to_youtube, PipelineResult.status supports ready_to_upload value, and download endpoint tests verify FileResponse behavior with mocked file paths
-**Plans:** 1/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
-- [ ] 04-01-PLAN.md — Remove YouTube auto-upload from workflow; add download endpoints; status=ready_to_upload
+- [x] 04-01-PLAN.md — Remove YouTube auto-upload from workflow; add download endpoints; status=ready_to_upload
 - [x] 04-02-PLAN.md — Frontend dashboard (vanilla HTML/CSS/JS) — runs table, cost cards, download buttons + CORS
-- [ ] 04-03-PLAN.md — Netlify deploy config + enhanced health endpoint + structured alert log
+- [x] 04-03-PLAN.md — Netlify deploy config + enhanced health endpoint + structured alert log
 - [ ] 04-04-PLAN.md — E2E dry-run tests + health/download endpoint tests
 
 ## Progress
@@ -102,4 +102,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
 | 2. Content Pipeline | 7/7 | Complete    | 2026-04-02 |
 | 3. Production Operations | 3/3 | Complete    | 2026-04-02 |
-| 4. Frontend & Human Upload | 1/4 | In Progress|  |
+| 4. Frontend & Human Upload | 3/4 | In Progress|  |
