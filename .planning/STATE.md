@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Wave 2 complete (02-03, 02-04)
-last_updated: "2026-04-02T01:35:00.000Z"
+stopped_at: Completed 02-05-PLAN.md (Wave 3)
+last_updated: "2026-04-02T01:46:41.696Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 9
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 02 (content-pipeline) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-02
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P01 | 15 | 2 tasks | 11 files |
 | Phase 02-content-pipeline P03 | 9 | 2 tasks | 6 files |
 | Phase 02-content-pipeline P04 | 592 | 2 tasks | 7 files |
+| Phase 02-content-pipeline P05 | 6 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: NotImplementedError for non-local LLM providers in generate_script — cloud LLM deferred to Plan 07
 - [Phase 02-content-pipeline]: settings imported at module level in video_gen.py so tests can patch src.activities.video_gen.settings
 - [Phase 02-content-pipeline]: CostTracker uses Windows lock-file sentinel (.lock) instead of msvcrt fd-based locking which is unreliable with ftruncate
+- [Phase 02-content-pipeline]: Import ffmpeg._run.Error directly (FfmpegError) so except clause survives full ffmpeg module patching in tests
+- [Phase 02-content-pipeline]: JPEG thumbnail quality=90 primary, auto-reduced to 75 if file exceeds 2MB YouTube limit
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:35:00.000Z
-Stopped at: Wave 2 complete (02-03, 02-04)
+Last session: 2026-04-02T01:46:41.691Z
+Stopped at: Completed 02-05-PLAN.md (Wave 3)
 Resume file: None
