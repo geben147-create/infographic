@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 03-production-operations 03-03-PLAN.md (checkpoint:human-verify pending)"
-last_updated: "2026-04-02T07:56:17.007Z"
+stopped_at: Completed 04-frontend-human-upload 04-01-PLAN.md
+last_updated: "2026-04-02T08:52:44.044Z"
 last_activity: 2026-04-02
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 18
+  completed_plans: 15
   percent: 0
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P07 | 6 | 2 tasks | 3 files |
 | Phase 03-production-operations P02 | 15 | 2 tasks | 7 files |
 | Phase 03-production-operations P03 | 12 | 1 tasks | 4 files |
+| Phase 04-frontend-human-upload P01 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 03-production-operations]: FastAPI get_db_session() uses generator (yield) pattern instead of raw Session return — required for Depends() to properly close sessions
 - [Phase 03-production-operations]: Tests use StaticPool for in-memory SQLite so all FastAPI TestClient threads share the same database instance
 - [Phase 03-production-operations]: Cost aggregation excludes NULL total_cost_usd rows to handle runs predating cost tracking column
+- [Phase 04-frontend-human-upload]: Cleanup step removed with upload — operator needs files to remain for download endpoints
+- [Phase 04-frontend-human-upload]: get_pipeline_status checks result.status to correctly surface ready_to_upload over Temporal COMPLETED status
 
 ### Pending Todos
 
@@ -116,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T07:50:54.925Z
-Stopped at: Completed 03-production-operations 03-03-PLAN.md (checkpoint:human-verify pending)
+Last session: 2026-04-02T08:52:44.038Z
+Stopped at: Completed 04-frontend-human-upload 04-01-PLAN.md
 Resume file: None
