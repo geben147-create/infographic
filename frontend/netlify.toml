@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+  # No build command — pure static HTML/CSS/JS
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
