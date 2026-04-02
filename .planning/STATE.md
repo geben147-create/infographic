@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-02T01:00:36.341Z"
+stopped_at: Completed 02-content-pipeline 02-01-PLAN.md
+last_updated: "2026-04-02T01:17:14.886Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 11
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-infrastructure P01 | 9 | 4 tasks | 17 files |
 | Phase 01-infrastructure P03 | 10 | 2 tasks | 14 files |
 | Phase 01-infrastructure P04 | 814 | 2 tasks | 4 files |
+| Phase 02-content-pipeline P01 | 15 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure]: gspread 6.x auth via service_account() only — gspread.authorize() removed in 6.x
 - [Phase 01-infrastructure]: mypy must run via uv run python -m mypy (not uv tool run mypy) to see project venv packages
 - [Phase 01-infrastructure]: Used ActivityEnvironment + source inspection instead of WorkflowEnvironment: Python subprocess spawning blocked in C:\Windows\System32 sandbox
+- [Phase 02-content-pipeline]: Lazy yaml import in load_channel_config() body — pyyaml is a Task 2 dep, module-level import blocks Task 1 tests
+- [Phase 02-content-pipeline]: ModelSpec.parse() splits on first colon only — model names can contain slashes/colons
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:00:36.336Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-content-pipeline/02-CONTEXT.md
+Last session: 2026-04-02T01:17:14.882Z
+Stopped at: Completed 02-content-pipeline 02-01-PLAN.md
+Resume file: None

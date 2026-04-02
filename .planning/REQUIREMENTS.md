@@ -19,12 +19,12 @@
 
 - [ ] **VGEN-01**: fal.ai WAN 2.2 API 키가 설정된 경우 장면별 AI 영상 클립을 생성한다 (API 키 없으면 이미지+Ken Burns로 대체)
 - [ ] **VGEN-02**: 영상 생성 시 영상당 비용($/초)을 실시간 표시하고 cost_log.json에 기록한다
-- [ ] **VGEN-03**: 채널 Config에서 영상 생성 on/off를 토글할 수 있다
+- [x] **VGEN-03**: 채널 Config에서 영상 생성 on/off를 토글할 수 있다
 
 ### Multi-Channel (CHAN)
 
-- [ ] **CHAN-01**: 채널별 Config 프로필(니치, 언어, 체크포인트, LoRA, TTS 음성, 프롬프트 템플릿, 썸네일 스타일, 태그, 발행 스케줄)을 Pydantic frozen model로 관리한다
-- [ ] **CHAN-02**: 단일 워크플로우가 channel_id 파라미터로 모든 채널을 처리한다 (채널별 코드 복사 금지)
+- [x] **CHAN-01**: 채널별 Config 프로필(니치, 언어, 체크포인트, LoRA, TTS 음성, 프롬프트 템플릿, 썸네일 스타일, 태그, 발행 스케줄)을 Pydantic frozen model로 관리한다
+- [x] **CHAN-02**: 단일 워크플로우가 channel_id 파라미터로 모든 채널을 처리한다 (채널별 코드 복사 금지)
 
 ### Data Layer (DATA)
 
@@ -91,9 +91,9 @@
 | PIPE-06 | Phase 2 | Pending |
 | VGEN-01 | Phase 2 | Pending |
 | VGEN-02 | Phase 2 | Pending |
-| VGEN-03 | Phase 2 | Pending |
-| CHAN-01 | Phase 2 | Pending |
-| CHAN-02 | Phase 2 | Pending |
+| VGEN-03 | Phase 2 | Complete |
+| CHAN-01 | Phase 2 | Complete |
+| CHAN-02 | Phase 2 | Complete |
 | OPS-01 | Phase 3 | Pending |
 | OPS-02 | Phase 3 | Pending |
 | OPS-03 | Phase 3 | Pending |
