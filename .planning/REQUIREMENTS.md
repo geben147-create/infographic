@@ -52,6 +52,14 @@
 - [x] **FILE-01**: 파이프라인 아티팩트는 `/data/pipeline/{workflow_run_id}/` 구조를 따른다
 - [x] **FILE-02**: 파이프라인 완료 후 중간 파일을 정리하는 cleanup Activity가 있다
 
+### Frontend & Human Upload (UI)
+
+- [ ] **UI-01**: React/HTML 프론트엔드 대시보드 — 파이프라인 실행 목록, 채널별 비용 집계, 영상 미리보기/다운로드 링크를 표시한다 (FastAPI `/api/dashboard/*` 엔드포인트 소비)
+- [ ] **UI-02**: 프론트엔드를 Netlify에 배포하여 공개 URL로 접근 가능하게 한다
+- [ ] **UI-03**: 대시보드에서 영상 파일과 썸네일을 직접 다운로드할 수 있다 (YouTube Studio 수동 업로드를 위해)
+- [ ] **PIPE-07**: ContentPipelineWorkflow에서 YouTube 자동 업로드 단계를 제거한다 — 워크플로우는 영상 조립+썸네일 생성 후 종료되며 `status=ready_to_upload`와 최종 영상 파일 경로를 반환한다
+- [ ] **MON-01**: `/api/health` 엔드포인트가 Temporal 연결, SQLite, 디스크 공간 상태를 반환한다; 치명적 오류는 구조화된 alert_log에 기록된다
+
 ## v2 Requirements (Deferred)
 
 - 다중 캐릭터 음성 연기 (VibeVoice/IndexTTS-2 multi-voice) — IndexTTS-2 한국어 품질 검증 후
@@ -94,12 +102,17 @@
 | VGEN-03 | Phase 2 | Complete |
 | CHAN-01 | Phase 2 | Complete |
 | CHAN-02 | Phase 2 | Complete |
-| OPS-01 | Phase 3 | Pending |
-| OPS-02 | Phase 3 | Pending |
+| OPS-01 | Phase 3 | Complete |
+| OPS-02 | Phase 3 | Complete |
 | OPS-03 | Phase 3 | Complete |
 | OPS-04 | Phase 3 | Complete |
 | OPS-05 | Phase 3 | Complete |
 | OPS-06 | Phase 3 | Complete |
+| UI-01  | Phase 4 | Pending |
+| UI-02  | Phase 4 | Pending |
+| UI-03  | Phase 4 | Pending |
+| PIPE-07 | Phase 4 | Pending |
+| MON-01 | Phase 4 | Pending |
 
 ---
 *Generated: 2026-04-01*
