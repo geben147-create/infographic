@@ -17,3 +17,5 @@ class PipelineRun(SQLModel, table=True):
     error_message: Optional[str] = Field(default=None)
     result_json: Optional[str] = Field(default=None)
     total_cost_usd: Optional[float] = Field(default=None)
+    video_path: Optional[str] = Field(default=None)
+    thumbnail_path: Optional[str] = Field(default=None)

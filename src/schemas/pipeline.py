@@ -23,6 +23,7 @@ class PipelineStatus(str, Enum):
     failed = "failed"
     unknown = "unknown"
     waiting_approval = "waiting_approval"
+    ready_to_upload = "ready_to_upload"
 
 
 class PipelineTriggerRequest(BaseModel):

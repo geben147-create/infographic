@@ -3,12 +3,12 @@ ContentPipelineWorkflow — the main Phase 2 end-to-end pipeline.
 
 Chains all activities in order across typed task queues:
   gpu-queue  : script_gen, image_gen, tts, video_gen, thumbnail
-  cpu-queue  : setup_dirs, assemble_video, cleanup
-  api-queue  : youtube_upload
+  cpu-queue  : setup_dirs, assemble_video
+  (no api-queue step — YouTube upload is manual by operator)
 
 Activity model imports are guarded by imports_passed_through() so that
-heavy dependencies (ComfyUI, fal.ai, googleapiclient) do not need to be
-present in the workflow worker process.
+heavy dependencies (ComfyUI, fal.ai) do not need to be present in the
+workflow worker process.
 """
 from __future__ import annotations
 
@@ -19,13 +19,11 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from src.activities.cleanup import CleanupInput
     from src.activities.image_gen import ImageGenInput, ImageGenOutput
     from src.activities.pipeline import SetupDirsInput, SetupDirsOutput
     from src.activities.script_gen import ScriptGenInput, ScriptGenOutput
     from src.activities.tts import TTSInput, TTSOutput
     from src.activities.video_gen import VideoGenInput, VideoGenOutput
-    from src.activities.youtube_upload import UploadInput, UploadOutput
 
     # 02-05 activities (video assembly + thumbnail) — parallel plan
     from src.activities.video_assembly import AssemblyInput, AssemblyOutput
@@ -38,12 +36,6 @@ with workflow.unsafe.imports_passed_through():
 _RETRY_DEFAULT = RetryPolicy(
     maximum_attempts=3,
     initial_interval=timedelta(seconds=5),
-    backoff_coefficient=2.0,
-)
-
-_RETRY_UPLOAD = RetryPolicy(
-    maximum_attempts=5,
-    initial_interval=timedelta(seconds=10),
     backoff_coefficient=2.0,
 )
 
@@ -62,9 +54,11 @@ class PipelineResult(BaseModel):
 
     video_id: str | None = None
     youtube_url: str | None = None
+    video_path: str = ""
+    thumbnail_path: str = ""
     total_cost_usd: float = 0.0
     scenes_count: int = 0
-    status: str = "completed"
+    status: str = "ready_to_upload"
 
 
 @workflow.defn
@@ -99,13 +93,17 @@ class ContentPipelineWorkflow:
 
     @workflow.run
     async def run(self, params: PipelineParams) -> PipelineResult:
-        """Execute the full pipeline from topic to YouTube upload.
+        """Execute the full pipeline from topic to video assembly.
+
+        Stops after video assembly + thumbnail generation and returns
+        status="ready_to_upload" so the operator can manually upload
+        to YouTube via the download endpoints.
 
         Args:
             params: run_id, topic, channel_id
 
         Returns:
-            PipelineResult with video_id, youtube_url, total_cost_usd, scenes_count.
+            PipelineResult with video_path, thumbnail_path, total_cost_usd, scenes_count.
         """
         total_cost: float = 0.0
 
@@ -229,7 +227,14 @@ class ContentPipelineWorkflow:
         )
 
         # ------------------------------------------------------------------ #
-        # Step 6.5: Quality gate — wait for human approval before upload       #
+        # Build paths for video and thumbnail (used in return and quality gate)#
+        # ------------------------------------------------------------------ #
+        thumbnail_path_str = str(
+            __import__("pathlib").Path(run_dir) / "thumbnails" / "thumbnail.jpg"
+        )
+
+        # ------------------------------------------------------------------ #
+        # Step 6.5: Quality gate — wait for human approval (preview only)      #
         # ------------------------------------------------------------------ #
         if params.quality_gate_enabled:
             import asyncio as _asyncio
@@ -244,6 +249,8 @@ class ContentPipelineWorkflow:
                     status="timeout_rejected",
                     video_id=None,
                     youtube_url=None,
+                    video_path=assembly_out.file_path,
+                    thumbnail_path=thumbnail_path_str,
                     total_cost_usd=total_cost,
                     scenes_count=len(script.scenes),
                 )
@@ -252,46 +259,19 @@ class ContentPipelineWorkflow:
                     status="rejected",
                     video_id=None,
                     youtube_url=None,
+                    video_path=assembly_out.file_path,
+                    thumbnail_path=thumbnail_path_str,
                     total_cost_usd=total_cost,
                     scenes_count=len(script.scenes),
                 )
 
         # ------------------------------------------------------------------ #
-        # Step 7: Upload to YouTube (api-queue)                                #
+        # Pipeline complete — files ready for manual YouTube upload            #
         # ------------------------------------------------------------------ #
-        upload_out: UploadOutput = await workflow.execute_activity(
-            "upload_to_youtube",
-            UploadInput(
-                video_path=assembly_out.file_path,
-                thumbnail_path=str(
-                    __import__("pathlib").Path(run_dir) / "thumbnails" / "thumbnail.jpg"
-                ),
-                title=script.title,
-                description=script.description,
-                tags=script.tags,
-                channel_id=params.channel_id,
-            ),
-            task_queue="api-queue",
-            start_to_close_timeout=timedelta(minutes=15),
-            retry_policy=_RETRY_UPLOAD,
-            result_type=UploadOutput,
-        )
-
-        # ------------------------------------------------------------------ #
-        # Step 8: Cleanup intermediate files (cpu-queue)                       #
-        # ------------------------------------------------------------------ #
-        await workflow.execute_activity(
-            "cleanup_intermediate_files",
-            CleanupInput(workflow_run_id=params.run_id),
-            task_queue="cpu-queue",
-            start_to_close_timeout=timedelta(seconds=30),
-            retry_policy=_RETRY_DEFAULT,
-        )
-
         return PipelineResult(
-            video_id=upload_out.video_id,
-            youtube_url=upload_out.youtube_url,
+            video_path=assembly_out.file_path,
+            thumbnail_path=thumbnail_path_str,
             total_cost_usd=total_cost,
             scenes_count=len(script.scenes),
-            status="completed",
+            status="ready_to_upload",
         )
