@@ -50,9 +50,9 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Provider abstraction + Channel config + Pydantic models + API schemas
-- [ ] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
+- [x] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
 - [ ] 02-03-PLAN.md — Script generation (LLM) + TTS audio activities
-- [ ] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
+- [x] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
 - [ ] 02-05-PLAN.md — FFmpeg video assembly + Thumbnail generation
 - [ ] 02-06-PLAN.md — YouTube upload + ContentPipelineWorkflow + API endpoints + Worker registration
 - [ ] 02-07-PLAN.md — Integration tests + Multi-channel validation + Human verification
