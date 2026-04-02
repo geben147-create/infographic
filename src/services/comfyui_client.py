@@ -24,14 +24,14 @@ _BASE_WORKFLOW: dict[str, Any] = {
     "4": {
         "class_type": "CLIPTextEncode",
         "inputs": {
-            "clip": ["10", 0],
+            "clip": ["10", 1],
             "text": "__PROMPT__",
         },
     },
     "6": {
         "class_type": "CLIPTextEncode",
         "inputs": {
-            "clip": ["10", 0],
+            "clip": ["10", 1],
             "text": "__NEGATIVE__",
         },
     },
@@ -58,16 +58,16 @@ _BASE_WORKFLOW: dict[str, Any] = {
     "13": {
         "class_type": "KSampler",
         "inputs": {
-            "cfg": 7,
+            "cfg": 1,
             "denoise": 1.0,
             "latent_image": ["14", 0],
             "model": ["10", 0],
             "negative": ["6", 0],
             "positive": ["4", 0],
-            "sampler_name": "euler",
-            "scheduler": "normal",
+            "sampler_name": "euler_ancestral",
+            "scheduler": "karras",
             "seed": 0,
-            "steps": 20,
+            "steps": 1,
         },
     },
     "14": {

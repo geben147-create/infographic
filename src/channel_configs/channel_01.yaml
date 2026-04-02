@@ -3,9 +3,9 @@ niche: general
 language: ko
 video_model: "local:wan2gp"
 image_model: "local:sdxl-juggernaut"
-tts_model: "local:cosyvoice2"
-llm_model: "local:qwen3.5-9b"
-sdxl_checkpoint: "juggernautXL_v9.safetensors"
+tts_model: "local:kokoro"
+llm_model: "local:qwen3:14b"
+sdxl_checkpoint: "sd_xl_turbo_1.0_fp16.safetensors"
 tts_voice_reference: "voices/default_ko.wav"
 prompt_template: script_default.j2
 thumbnail_style: default

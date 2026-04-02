@@ -169,11 +169,17 @@ async def upload_to_youtube(params: UploadInput) -> UploadOutput:
     # Resumable upload is blocking I/O — run in a thread pool
     video_id = await asyncio.to_thread(_do_resumable_upload, youtube, params)
 
-    # Attach thumbnail
-    youtube.thumbnails().set(  # type: ignore[union-attr]
-        videoId=video_id,
-        media_body=MediaFileUpload(params.thumbnail_path, mimetype="image/jpeg"),
-    ).execute()
+    # Attach thumbnail (non-fatal: requires YouTube channel verification)
+    try:
+        youtube.thumbnails().set(  # type: ignore[union-attr]
+            videoId=video_id,
+            media_body=MediaFileUpload(params.thumbnail_path, mimetype="image/jpeg"),
+        ).execute()
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning(
+            "Thumbnail upload skipped (video_id=%s): %s", video_id, exc
+        )
 
     # Persist any token rotation
     try:

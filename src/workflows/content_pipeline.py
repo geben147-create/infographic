@@ -20,15 +20,15 @@ from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from src.activities.cleanup import CleanupInput
-    from src.activities.image_gen import ImageGenInput
-    from src.activities.pipeline import SetupDirsInput
-    from src.activities.script_gen import ScriptGenInput
-    from src.activities.tts import TTSInput
-    from src.activities.video_gen import VideoGenInput
-    from src.activities.youtube_upload import UploadInput
+    from src.activities.image_gen import ImageGenInput, ImageGenOutput
+    from src.activities.pipeline import SetupDirsInput, SetupDirsOutput
+    from src.activities.script_gen import ScriptGenInput, ScriptGenOutput
+    from src.activities.tts import TTSInput, TTSOutput
+    from src.activities.video_gen import VideoGenInput, VideoGenOutput
+    from src.activities.youtube_upload import UploadInput, UploadOutput
 
     # 02-05 activities (video assembly + thumbnail) — parallel plan
-    from src.activities.video_assembly import AssemblyInput
+    from src.activities.video_assembly import AssemblyInput, AssemblyOutput
     from src.activities.thumbnail import ThumbnailInput
 
 
@@ -88,19 +88,20 @@ class ContentPipelineWorkflow:
         # ------------------------------------------------------------------ #
         # Step 1: Setup run directory tree (cpu-queue)                         #
         # ------------------------------------------------------------------ #
-        setup_out = await workflow.execute_activity(
+        setup_out: SetupDirsOutput = await workflow.execute_activity(
             "setup_pipeline_dirs",
             SetupDirsInput(workflow_run_id=params.run_id),
             task_queue="cpu-queue",
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=_RETRY_DEFAULT,
+            result_type=SetupDirsOutput,
         )
         run_dir: str = setup_out.base_path
 
         # ------------------------------------------------------------------ #
         # Step 2: Generate script (gpu-queue — Ollama/Qwen3 uses GPU)         #
         # ------------------------------------------------------------------ #
-        script_out = await workflow.execute_activity(
+        script_out: ScriptGenOutput = await workflow.execute_activity(
             "generate_script",
             ScriptGenInput(
                 topic=params.topic,
@@ -110,6 +111,7 @@ class ContentPipelineWorkflow:
             task_queue="gpu-queue",
             start_to_close_timeout=timedelta(minutes=5),
             retry_policy=_RETRY_DEFAULT,
+            result_type=ScriptGenOutput,
         )
         script = script_out.script
 
@@ -120,7 +122,7 @@ class ContentPipelineWorkflow:
         image_paths: list[str] = []
 
         for i, scene in enumerate(script.scenes):
-            img_out = await workflow.execute_activity(
+            img_out: ImageGenOutput = await workflow.execute_activity(
                 "generate_scene_image",
                 ImageGenInput(
                     scene_index=i,
@@ -129,12 +131,13 @@ class ContentPipelineWorkflow:
                     run_dir=run_dir,
                 ),
                 task_queue="gpu-queue",
-                start_to_close_timeout=timedelta(minutes=3),
+                start_to_close_timeout=timedelta(minutes=10),
                 retry_policy=_RETRY_DEFAULT,
+                result_type=ImageGenOutput,
             )
             image_paths.append(img_out.file_path)
 
-            tts_out = await workflow.execute_activity(
+            tts_out: TTSOutput = await workflow.execute_activity(
                 "generate_tts_audio",
                 TTSInput(
                     scene_index=i,
@@ -145,6 +148,7 @@ class ContentPipelineWorkflow:
                 task_queue="gpu-queue",
                 start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=_RETRY_DEFAULT,
+                result_type=TTSOutput,
             )
             tts_outputs.append(tts_out)
 
@@ -153,7 +157,7 @@ class ContentPipelineWorkflow:
         # ------------------------------------------------------------------ #
         for i, scene in enumerate(script.scenes):
             tts_out = tts_outputs[i]
-            video_out = await workflow.execute_activity(
+            video_out: VideoGenOutput = await workflow.execute_activity(
                 "generate_scene_video",
                 VideoGenInput(
                     scene_index=i,
@@ -166,6 +170,7 @@ class ContentPipelineWorkflow:
                 task_queue="gpu-queue",
                 start_to_close_timeout=timedelta(minutes=10),
                 retry_policy=_RETRY_DEFAULT,
+                result_type=VideoGenOutput,
             )
             total_cost += video_out.cost_usd
 
@@ -187,7 +192,7 @@ class ContentPipelineWorkflow:
         # ------------------------------------------------------------------ #
         # Step 6: Assemble final video (cpu-queue — FFmpeg)                    #
         # ------------------------------------------------------------------ #
-        assembly_out = await workflow.execute_activity(
+        assembly_out: AssemblyOutput = await workflow.execute_activity(
             "assemble_video",
             AssemblyInput(
                 scene_count=len(script.scenes),
@@ -196,12 +201,13 @@ class ContentPipelineWorkflow:
             task_queue="cpu-queue",
             start_to_close_timeout=timedelta(minutes=10),
             retry_policy=_RETRY_DEFAULT,
+            result_type=AssemblyOutput,
         )
 
         # ------------------------------------------------------------------ #
         # Step 7: Upload to YouTube (api-queue)                                #
         # ------------------------------------------------------------------ #
-        upload_out = await workflow.execute_activity(
+        upload_out: UploadOutput = await workflow.execute_activity(
             "upload_to_youtube",
             UploadInput(
                 video_path=assembly_out.file_path,
@@ -216,6 +222,7 @@ class ContentPipelineWorkflow:
             task_queue="api-queue",
             start_to_close_timeout=timedelta(minutes=15),
             retry_policy=_RETRY_UPLOAD,
+            result_type=UploadOutput,
         )
 
         # ------------------------------------------------------------------ #
