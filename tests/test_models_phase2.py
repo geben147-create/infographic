@@ -172,10 +172,10 @@ class TestPipelineStatus:
         assert "failed" in values
         assert "unknown" in values
 
-    def test_exactly_four_values(self):
+    def test_exactly_six_values(self):
         from src.schemas.pipeline import PipelineStatus
 
-        assert len(list(PipelineStatus)) == 4
+        assert len(list(PipelineStatus)) == 6
 
 
 # ─────────────────────────────────────────────

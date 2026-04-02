@@ -20,15 +20,14 @@ class TestChannelConfigLoading:
     """Both channel YAML files must load as valid ChannelConfig instances."""
 
     def test_channel_01_loads_with_local_providers(self):
-        """channel_01.yaml uses local providers: cosyvoice2, sdxl-juggernaut, qwen3.5-9b."""
+        """channel_01.yaml uses local providers: kokoro, sdxl-juggernaut, qwen3:14b."""
         from src.models.channel_config import load_channel_config
 
         config = load_channel_config("channel_01")
 
         assert config.channel_id == "channel_01"
-        assert config.tts_model == "local:cosyvoice2"
+        assert config.tts_model == "local:kokoro"
         assert config.image_model == "local:sdxl-juggernaut"
-        assert config.llm_model == "local:qwen3.5-9b"
         assert config.vgen_enabled is False
 
     def test_channel_02_loads_with_mixed_providers(self):
@@ -122,7 +121,7 @@ class TestModelSpecParsing:
         # LLM model
         llm_spec = ModelSpec.parse(config.llm_model)
         assert llm_spec.provider == ProviderType.local
-        assert llm_spec.model == "qwen3.5-9b"
+        assert llm_spec.model == "qwen3:14b"
 
         # Image model
         img_spec = ModelSpec.parse(config.image_model)
@@ -132,7 +131,7 @@ class TestModelSpecParsing:
         # TTS model
         tts_spec = ModelSpec.parse(config.tts_model)
         assert tts_spec.provider == ProviderType.local
-        assert tts_spec.model == "cosyvoice2"
+        assert tts_spec.model == "kokoro"
 
         # Video model (local:wan2gp — used as Ken Burns fallback)
         video_spec = ModelSpec.parse(config.video_model)
@@ -164,12 +163,12 @@ class TestModelSpecParsing:
         llm_spec = ModelSpec.parse(config.llm_model)
         assert llm_spec.provider == ProviderType.together
 
-    def test_channel_01_tts_model_is_local_cosyvoice2(self):
-        """channel_01 TTS model spec string is 'local:cosyvoice2'."""
+    def test_channel_01_tts_model_is_local_kokoro(self):
+        """channel_01 TTS model spec string is 'local:kokoro'."""
         from src.models.channel_config import load_channel_config
 
         config = load_channel_config("channel_01")
-        assert config.tts_model == "local:cosyvoice2"
+        assert config.tts_model == "local:kokoro"
 
     def test_channel_02_video_model_is_fal_kling(self):
         """channel_02 video model spec string is 'fal:kling-2.5-turbo'."""
@@ -297,4 +296,4 @@ class TestWorkflowCompatibility:
         assert result.youtube_url is None
         assert result.total_cost_usd == 0.0
         assert result.scenes_count == 0
-        assert result.status == "completed"
+        assert result.status == "ready_to_upload"

@@ -64,12 +64,12 @@ class TestPipelineResultQualityGateStatuses:
         result = PipelineResult(status="waiting_approval")
         assert result.status == "waiting_approval"
 
-    def test_pipeline_result_default_status_still_works(self):
-        """PipelineResult default status is still 'completed'."""
+    def test_pipeline_result_default_status_ready_to_upload(self):
+        """PipelineResult default status is 'ready_to_upload' after Phase 4 removes auto-upload."""
         from src.workflows.content_pipeline import PipelineResult
 
         result = PipelineResult()
-        assert result.status == "completed"
+        assert result.status == "ready_to_upload"
 
 
 class TestApprovalSignal:

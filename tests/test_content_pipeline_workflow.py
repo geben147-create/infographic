@@ -40,7 +40,7 @@ class TestPipelineParamsResult:
         assert r.youtube_url is None
         assert r.total_cost_usd == 0.0
         assert r.scenes_count == 0
-        assert r.status == "completed"
+        assert r.status == "ready_to_upload"
 
     def test_pipeline_result_with_values(self) -> None:
         r = PipelineResult(
@@ -116,16 +116,16 @@ class TestContentPipelineWorkflowStructure:
             "ContentPipelineWorkflow must call generate_thumbnail activity"
         )
 
-    def test_workflow_calls_upload_to_youtube(self) -> None:
+    def test_workflow_does_not_call_upload_to_youtube(self) -> None:
         src = self._get_source()
-        assert "upload_to_youtube" in src, (
-            "ContentPipelineWorkflow must call upload_to_youtube activity"
+        assert "upload_to_youtube" not in src, (
+            "ContentPipelineWorkflow must NOT call upload_to_youtube — Phase 4 removed auto-upload"
         )
 
-    def test_workflow_calls_cleanup_intermediate_files(self) -> None:
+    def test_workflow_does_not_call_cleanup_intermediate_files(self) -> None:
         src = self._get_source()
-        assert "cleanup_intermediate_files" in src, (
-            "ContentPipelineWorkflow must call cleanup_intermediate_files activity"
+        assert "cleanup_intermediate_files" not in src, (
+            "ContentPipelineWorkflow must NOT call cleanup — Phase 4 removed cleanup after upload removed"
         )
 
     def test_workflow_calls_setup_pipeline_dirs(self) -> None:
