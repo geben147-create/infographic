@@ -16,6 +16,8 @@ class RunSummary(BaseModel):
     status: str
     total_cost_usd: float | None = None
     youtube_url: str | None = None
+    video_path: str | None = None
+    thumbnail_path: str | None = None
     started_at: str | None = None
     completed_at: str | None = None
     error_message: str | None = None

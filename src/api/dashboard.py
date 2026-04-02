@@ -69,6 +69,8 @@ def list_runs(
                 channel_id=r.channel_id,
                 status=r.status,
                 total_cost_usd=r.total_cost_usd,
+                video_path=r.video_path,
+                thumbnail_path=r.thumbnail_path,
                 started_at=r.started_at.isoformat() if r.started_at else None,
                 completed_at=r.completed_at.isoformat() if r.completed_at else None,
                 error_message=r.error_message,
