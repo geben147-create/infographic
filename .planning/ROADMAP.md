@@ -70,7 +70,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Quality gate: signal handler, approval endpoint, video preview, config toggle
+- [x] 03-01-PLAN.md — Quality gate: signal handler, approval endpoint, video preview, config toggle
 - [ ] 03-02-PLAN.md — Batch runner CLI + Schedule CLI + cost DB migration
 - [ ] 03-03-PLAN.md — Dashboard endpoints + integration verification
 
