@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: complete
-stopped_at: All 4 phases complete (18/18 plans)
-last_updated: "2026-04-02T10:00:00.000Z"
+stopped_at: All 5 phases complete (19/19 plans)
+last_updated: "2026-04-02T22:30:00.000Z"
 last_activity: 2026-04-02
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 19
+  completed_plans: 19
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** 토픽 하나로 완성된 YouTube 영상을 자동 생성하고 업로드하는 것
-**Current focus:** v1.0 Milestone complete — all 4 phases delivered
+**Current focus:** v1.0+ Milestone complete — all 5 phases delivered (React frontend + backend APIs)
 
 ## Current Position
 
 Phase: All complete
-Plan: 18/18
-Status: v1.0 Milestone complete
+Plan: 19/19
+Status: v1.0+ Milestone complete (Phase 5: React frontend)
 Last activity: 2026-04-02
 
 Progress: [██████████] 100%
@@ -115,6 +115,10 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Roadmap Evolution
+
+- Phase 5 added: Complete Frontend Site — 기본 대시보드를 완전한 사이트로 확장 (파이프라인 트리거 UI, 채널 관리, 비디오 미리보기/다운로드, 실시간 상태 모니터링, 반응형 디자인)
+
 ### Blockers/Concerns
 
 - [Phase 2 risk]: IndexTTS-2 Korean pronunciation quality for domain-specific vocabulary (medical, financial, crypto) is unverified — hands-on testing required early in Phase 2
@@ -123,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T10:00:00.000Z
-Stopped at: v1.0 Milestone complete — all 4 phases verified
+Last session: 2026-04-02T22:30:00.000Z
+Stopped at: v1.0+ complete — Phase 5 React frontend + 7 backend APIs added
 Resume file: None

@@ -95,7 +95,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -103,3 +103,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Content Pipeline | 7/7 | Complete | 2026-04-02 |
 | 3. Production Operations | 3/3 | Complete | 2026-04-02 |
 | 4. Frontend & Human Upload | 4/4 | Complete | 2026-04-02 |
+| 5. Complete Frontend Site | 1/1 | Complete | 2026-04-02 |
+
+### Phase 5: Complete Frontend Site — React + Tailwind + shadcn/ui 7페이지 프론트엔드 + 10개 백엔드 API 추가
+
+**Goal:** 기본 바닐라 대시보드를 React + Tailwind CSS + Recharts 기반 완전한 SPA로 재구축. 7개 페이지 (Dashboard, Pipelines, PipelineDetail, Trigger, Costs, Channels, Settings) + 7개 새 백엔드 API.
+**Requirements**: UI-01, UI-02, UI-03 extended
+**Depends on:** Phase 4
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] 05-01-PLAN.md — React frontend rebuild + backend API additions (channels, system, daily costs)

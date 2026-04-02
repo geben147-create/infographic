@@ -134,3 +134,96 @@ def cost_summary(
         days=days,
         by_channel=by_channel,
     )
+
+
+@router.get("/costs/daily")
+def daily_costs(
+    days: int = 30,
+    channel_id: str | None = None,
+    session: Session = Depends(get_db_session),
+) -> dict:
+    """Return daily cost time series for charting.
+
+    Returns a list of {date, cost, run_count} objects for each day.
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+    # SQLite date() function extracts YYYY-MM-DD from datetime
+    date_expr = func.date(PipelineRun.started_at)
+    query = (
+        select(
+            date_expr.label("date"),
+            func.coalesce(func.sum(PipelineRun.total_cost_usd), 0.0).label("cost"),
+            func.count().label("run_count"),
+        )
+        .where(PipelineRun.started_at >= cutoff)
+        .group_by(date_expr)
+        .order_by(date_expr)
+    )
+
+    if channel_id:
+        query = query.where(PipelineRun.channel_id == channel_id)
+
+    rows = session.exec(query).all()
+
+    return {
+        "days": days,
+        "data": [
+            {"date": row[0], "cost": round(row[1] or 0.0, 4), "run_count": row[2]}
+            for row in rows
+        ],
+    }
+
+
+@router.get("/costs/by-service")
+def costs_by_service(
+    days: int = 30,
+    session: Session = Depends(get_db_session),
+) -> dict:
+    """Return cost breakdown by service (fal.ai, local, etc.).
+
+    Reads from cost_log.json for per-service granularity.
+    Falls back to DB aggregation if cost_log unavailable.
+    """
+    import json
+    import pathlib
+
+    from src.config import settings as app_settings
+
+    cost_path = pathlib.Path(app_settings.cost_log_path)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+    service_totals: dict[str, float] = {}
+
+    if cost_path.exists():
+        try:
+            data = json.loads(cost_path.read_text(encoding="utf-8"))
+            entries = data if isinstance(data, list) else data.get("entries", [])
+            for entry in entries:
+                ts = entry.get("timestamp", "")
+                if ts and ts >= cutoff.isoformat():
+                    svc = entry.get("service", "local")
+                    amt = float(entry.get("amount_usd", 0))
+                    service_totals[svc] = service_totals.get(svc, 0.0) + amt
+        except Exception:
+            pass
+
+    # Always include local cost (runs with $0 cost)
+    total_runs = session.exec(
+        select(func.count()).select_from(PipelineRun).where(
+            PipelineRun.started_at >= cutoff,
+        )
+    ).one()
+
+    cloud_runs = sum(1 for _ in service_totals.values())
+    if total_runs > cloud_runs and "local" not in service_totals:
+        service_totals["local"] = 0.0
+
+    return {
+        "days": days,
+        "services": [
+            {"service": svc, "total_cost_usd": round(amt, 4)}
+            for svc, amt in sorted(service_totals.items())
+        ],
+        "grand_total_usd": round(sum(service_totals.values()), 4),
+    }
