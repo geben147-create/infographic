@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Wave 2 complete (02-03, 02-04)
-last_updated: "2026-04-02T01:35:00.000Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-04-02T01:49:48.898Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 9
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 02 (content-pipeline) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-02
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P01 | 15 | 2 tasks | 11 files |
 | Phase 02-content-pipeline P03 | 9 | 2 tasks | 6 files |
 | Phase 02-content-pipeline P04 | 592 | 2 tasks | 7 files |
+| Phase 02-content-pipeline P06 | 8 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: NotImplementedError for non-local LLM providers in generate_script — cloud LLM deferred to Plan 07
 - [Phase 02-content-pipeline]: settings imported at module level in video_gen.py so tests can patch src.activities.video_gen.settings
 - [Phase 02-content-pipeline]: CostTracker uses Windows lock-file sentinel (.lock) instead of msvcrt fd-based locking which is unreliable with ftruncate
+- [Phase 02-content-pipeline]: asyncio.to_thread() for MediaFileUpload.next_chunk() — blocking resumable upload must not block asyncio event loop in Temporal activity
+- [Phase 02-content-pipeline]: Stub video_assembly.py + thumbnail.py created by 02-06 to unblock workflow import while 02-05 runs in parallel — imports_passed_through() does not suppress ModuleNotFoundError at collection time
+- [Phase 02-content-pipeline]: ContentPipelineWorkflow registered on all 3 worker queues — Temporal requires workflow class registered on every worker that executes it
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:35:00.000Z
-Stopped at: Wave 2 complete (02-03, 02-04)
+Last session: 2026-04-02T01:49:48.894Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
