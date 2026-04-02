@@ -134,12 +134,15 @@ async def get_pipeline_status(
 
         cost_so_far = _cost_tracker.get_run_total(workflow_id)
 
-        # Retrieve youtube_url from result if completed
+        # Retrieve youtube_url from result if completed; also check for ready_to_upload
         youtube_url: str | None = None
         if mapped_status == PipelineStatus.completed:
             try:
                 result = await handle.result()
                 youtube_url = getattr(result, "youtube_url", None)
+                result_status = getattr(result, "status", None)
+                if result_status == "ready_to_upload":
+                    mapped_status = PipelineStatus.ready_to_upload
             except Exception:
                 pass
 
@@ -233,6 +236,64 @@ async def approve_pipeline(
         ApprovalSignal(approved=body.approved, reason=body.reason),
     )
     return {"signalled": True, "workflow_id": workflow_id, "approved": body.approved}
+
+
+@router.get("/{workflow_id}/download")
+async def download_video(workflow_id: str) -> FileResponse:
+    """Download the assembled video file for manual YouTube upload.
+
+    Video is expected at: data/pipeline/{workflow_id}/final/output.mp4
+
+    Args:
+        workflow_id: Temporal workflow ID.
+
+    Returns:
+        FileResponse with Content-Disposition attachment header.
+
+    Raises:
+        HTTPException 404: If the video file does not exist yet.
+    """
+    video_path = pathlib.Path("data/pipeline") / workflow_id / "final" / "output.mp4"
+    if not video_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Video not found for workflow: {workflow_id}",
+        )
+    return FileResponse(
+        path=str(video_path),
+        media_type="video/mp4",
+        filename=f"{workflow_id}.mp4",
+        headers={"Content-Disposition": f'attachment; filename="{workflow_id}.mp4"'},
+    )
+
+
+@router.get("/{workflow_id}/thumbnail")
+async def download_thumbnail(workflow_id: str) -> FileResponse:
+    """Download the thumbnail image for manual YouTube upload.
+
+    Thumbnail is expected at: data/pipeline/{workflow_id}/thumbnails/thumbnail.jpg
+
+    Args:
+        workflow_id: Temporal workflow ID.
+
+    Returns:
+        FileResponse with Content-Disposition attachment header.
+
+    Raises:
+        HTTPException 404: If the thumbnail file does not exist yet.
+    """
+    thumb_path = pathlib.Path("data/pipeline") / workflow_id / "thumbnails" / "thumbnail.jpg"
+    if not thumb_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Thumbnail not found for workflow: {workflow_id}",
+        )
+    return FileResponse(
+        path=str(thumb_path),
+        media_type="image/jpeg",
+        filename=f"{workflow_id}_thumbnail.jpg",
+        headers={"Content-Disposition": f'attachment; filename="{workflow_id}_thumbnail.jpg"'},
+    )
 
 
 @router.get("/{workflow_id}/video")
