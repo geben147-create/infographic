@@ -5,17 +5,23 @@ Exposes the ContentPipelineWorkflow via FastAPI:
   POST   /api/pipeline/trigger             — start a new pipeline run
   GET    /api/pipeline/status/{workflow_id} — poll current step + cost
   GET    /api/pipeline/cost/{workflow_id}   — full cost breakdown
+  POST   /api/pipeline/{workflow_id}/approve — quality gate: approve/reject
+  GET    /api/pipeline/{workflow_id}/video  — preview assembled video
   DELETE /api/pipeline/{workflow_id}        — cancel in-flight run
 """
 from __future__ import annotations
 
+import pathlib
 from uuid import uuid4
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from temporalio.service import RPCError
 
 from src.models.channel_config import load_channel_config
 from src.schemas.pipeline import (
+    ApprovalSignal,
+    ApproveRequest,
     CostDetailResponse,
     CostLineItem,
     PipelineStatus,
@@ -197,6 +203,63 @@ async def get_pipeline_cost(
         channel_id=channel_id,
         total_cost_usd=total,
         breakdown=breakdown,
+    )
+
+
+@router.post("/{workflow_id}/approve")
+async def approve_pipeline(
+    workflow_id: str,
+    body: ApproveRequest,
+    request: Request,
+) -> dict:
+    """Approve or reject an assembled video via the quality gate.
+
+    Sends a Temporal signal to the waiting ContentPipelineWorkflow.
+    When approved=True the workflow continues to YouTube upload.
+    When approved=False the workflow returns status='rejected'.
+
+    Args:
+        workflow_id: Temporal workflow ID.
+        body: ApproveRequest with approved bool and optional reason.
+        request: FastAPI request (for temporal_client from app.state).
+
+    Returns:
+        Dict with signalled=True, workflow_id, and approved flag.
+    """
+    client = request.app.state.temporal_client
+    handle = client.get_workflow_handle(workflow_id)
+    await handle.signal(
+        "approve_video",
+        ApprovalSignal(approved=body.approved, reason=body.reason),
+    )
+    return {"signalled": True, "workflow_id": workflow_id, "approved": body.approved}
+
+
+@router.get("/{workflow_id}/video")
+async def get_pipeline_video(workflow_id: str) -> FileResponse:
+    """Serve the assembled video file for operator preview.
+
+    Video is expected at: data/pipeline/{workflow_id}/final/output.mp4
+
+    Args:
+        workflow_id: Temporal workflow ID.
+
+    Returns:
+        FileResponse streaming the assembled MP4.
+
+    Raises:
+        HTTPException 404: If the video file does not exist yet.
+    """
+    video_path = pathlib.Path("data/pipeline") / workflow_id / "final" / "output.mp4"
+    if not video_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Video not found for workflow: {workflow_id}",
+        )
+    return FileResponse(
+        path=str(video_path),
+        media_type="video/mp4",
+        filename=f"{workflow_id}.mp4",
     )
 
 
