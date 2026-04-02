@@ -55,7 +55,7 @@ Plans:
 - [x] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
 - [x] 02-05-PLAN.md — FFmpeg video assembly + Thumbnail generation
 - [x] 02-06-PLAN.md — YouTube upload + ContentPipelineWorkflow + API endpoints + Worker registration
-- [ ] 02-07-PLAN.md — Integration tests + Multi-channel validation + Human verification
+- [x] 02-07-PLAN.md — Integration tests + Multi-channel validation + Human verification
 
 ### Phase 3: Production Operations
 **Goal**: The operator can review and approve videos before they go live, queue a week of content for overnight generation, schedule future publish dates, and see cost and status at a glance.

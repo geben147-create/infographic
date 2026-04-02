@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Wave 3 complete (02-05, 02-06)
-last_updated: "2026-04-02T01:50:00.000Z"
+stopped_at: "Checkpoint: Task 3 human-verify — waiting for human approval of Phase 2 test suite"
+last_updated: "2026-04-02T02:04:06.194Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 11
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-01)
 ## Current Position
 
 Phase: 02 (content-pipeline) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-02
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P04 | 592 | 2 tasks | 7 files |
 | Phase 02-content-pipeline P05 | 6 | 2 tasks | 4 files |
 | Phase 02-content-pipeline P06 | 8 | 2 tasks | 11 files |
+| Phase 02-content-pipeline P07 | 6 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: asyncio.to_thread() for MediaFileUpload.next_chunk() — blocking resumable upload must not block asyncio event loop in Temporal activity
 - [Phase 02-content-pipeline]: Stub video_assembly.py + thumbnail.py created by 02-06 to unblock workflow import while 02-05 runs in parallel — imports_passed_through() does not suppress ModuleNotFoundError at collection time
 - [Phase 02-content-pipeline]: ContentPipelineWorkflow registered on all 3 worker queues — Temporal requires workflow class registered on every worker that executes it
+- [Phase 02-content-pipeline]: Patch src.config.settings.* (not src.activities.image_gen.settings) for lazy-imported settings in activity tests
+- [Phase 02-content-pipeline]: FastAPI TestClient with fake lifespan factory avoids Temporal connection in pipeline API tests
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:50:00.000Z
-Stopped at: Wave 3 complete (02-05, 02-06)
+Last session: 2026-04-02T02:04:06.189Z
+Stopped at: Checkpoint: Task 3 human-verify — waiting for human approval of Phase 2 test suite
 Resume file: None
