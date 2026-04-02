@@ -74,13 +74,32 @@ Plans:
 - [x] 03-02-PLAN.md — Batch runner CLI + Schedule CLI + cost DB migration
 - [x] 03-03-PLAN.md — Dashboard endpoints + integration verification
 
+### Phase 4: Frontend & Human-in-the-loop Upload
+**Goal**: The operator sees a live web dashboard showing pipeline runs, costs, and video preview — and the workflow delivers a finished video file ready for manual YouTube upload instead of auto-uploading, putting final publish control in human hands.
+**Depends on**: Phase 3
+**Requirements**: UI-01, UI-02, UI-03, PIPE-07, MON-01
+**Success Criteria** (what must be TRUE):
+  1. A React/HTML frontend dashboard deployed to Netlify displays pipeline run history, per-channel cost breakdown, and video preview/download links — updated without a page reload
+  2. The ContentPipelineWorkflow stops after video assembly and thumbnail generation; the YouTube upload step is removed from the automated pipeline; status is set to `ready_to_upload` with the final video file path exposed via API
+  3. The operator can download the assembled video and thumbnail directly from the dashboard, then upload manually to YouTube Studio
+  4. A `/api/health` endpoint returns system status (Temporal connection, SQLite, disk space); critical errors (Temporal unreachable, disk full) are logged to a structured alert log
+  5. An end-to-end dry-run test executes the full pipeline (script → image → TTS → FFmpeg → thumbnail) against a real topic without YouTube upload and confirms the output video file exists with correct duration
+**Plans:** 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Remove YouTube auto-upload from workflow; add download endpoints; status=ready_to_upload
+- [ ] 04-02-PLAN.md — Frontend dashboard (vanilla HTML/CSS/JS) — runs table, cost cards, download buttons + CORS
+- [ ] 04-03-PLAN.md — Netlify deploy config + enhanced health endpoint + structured alert log
+- [ ] 04-04-PLAN.md — E2E dry-run tests + health/download endpoint tests
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
-| 2. Content Pipeline | 6/7 | In Progress|  |
-| 3. Production Operations | 1/3 | In Progress|  |
+| 2. Content Pipeline | 7/7 | Complete    | 2026-04-02 |
+| 3. Production Operations | 3/3 | Complete    | 2026-04-02 |
+| 4. Frontend & Human Upload | 0/4 | Planned     |  |
