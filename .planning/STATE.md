@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md (Wave 3)
-last_updated: "2026-04-02T01:46:41.696Z"
+stopped_at: Wave 3 complete (02-05, 02-06)
+last_updated: "2026-04-02T01:50:00.000Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P03 | 9 | 2 tasks | 6 files |
 | Phase 02-content-pipeline P04 | 592 | 2 tasks | 7 files |
 | Phase 02-content-pipeline P05 | 6 | 2 tasks | 4 files |
+| Phase 02-content-pipeline P06 | 8 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: CostTracker uses Windows lock-file sentinel (.lock) instead of msvcrt fd-based locking which is unreliable with ftruncate
 - [Phase 02-content-pipeline]: Import ffmpeg._run.Error directly (FfmpegError) so except clause survives full ffmpeg module patching in tests
 - [Phase 02-content-pipeline]: JPEG thumbnail quality=90 primary, auto-reduced to 75 if file exceeds 2MB YouTube limit
+- [Phase 02-content-pipeline]: asyncio.to_thread() for MediaFileUpload.next_chunk() — blocking resumable upload must not block asyncio event loop in Temporal activity
+- [Phase 02-content-pipeline]: Stub video_assembly.py + thumbnail.py created by 02-06 to unblock workflow import while 02-05 runs in parallel — imports_passed_through() does not suppress ModuleNotFoundError at collection time
+- [Phase 02-content-pipeline]: ContentPipelineWorkflow registered on all 3 worker queues — Temporal requires workflow class registered on every worker that executes it
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:46:41.691Z
-Stopped at: Completed 02-05-PLAN.md (Wave 3)
+Last session: 2026-04-02T01:50:00.000Z
+Stopped at: Wave 3 complete (02-05, 02-06)
 Resume file: None
