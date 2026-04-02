@@ -83,7 +83,7 @@ Plans:
   2. The ContentPipelineWorkflow stops after video assembly and thumbnail generation; the YouTube upload step is removed from the automated pipeline; status is set to `ready_to_upload` with the final video file path exposed via API
   3. The operator can download the assembled video and thumbnail directly from the dashboard, then upload manually to YouTube Studio
   4. A `/api/health` endpoint returns system status (Temporal connection, SQLite, disk space); critical errors (Temporal unreachable, disk full) are logged to a structured alert log
-  5. An end-to-end dry-run test executes the full pipeline (script → image → TTS → FFmpeg → thumbnail) against a real topic without YouTube upload and confirms the output video file exists with correct duration
+  5. E2E verification confirms ContentPipelineWorkflow source no longer references upload_to_youtube, PipelineResult.status supports ready_to_upload value, and download endpoint tests verify FileResponse behavior with mocked file paths
 **Plans:** 4 plans
 
 Plans:
