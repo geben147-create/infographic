@@ -1,0 +1,19 @@
+channel_id: channel_02
+niche: finance
+language: ko
+video_model: "fal:kling-2.5-turbo"
+image_model: "fal:flux-kontext"
+tts_model: "local:kokoro"
+llm_model: "together:qwen3-8b"
+sdxl_checkpoint: "juggernautXL_v9.safetensors"
+tts_voice_reference: "voices/finance_ko.wav"
+prompt_template: script_finance.j2
+thumbnail_style: finance
+tags:
+  - "한국어"
+  - "재테크"
+  - "투자"
+vgen_enabled: true
+youtube_credentials_path: "data/yt_token_channel_02.json"
+publish_status: private
+category_id: "22"

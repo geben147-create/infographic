@@ -1,0 +1,18 @@
+channel_id: channel_01
+niche: general
+language: ko
+video_model: "local:wan2gp"
+image_model: "local:sdxl-juggernaut"
+tts_model: "local:cosyvoice2"
+llm_model: "local:qwen3.5-9b"
+sdxl_checkpoint: "juggernautXL_v9.safetensors"
+tts_voice_reference: "voices/default_ko.wav"
+prompt_template: script_default.j2
+thumbnail_style: default
+tags:
+  - "한국어"
+  - "정보"
+vgen_enabled: false
+youtube_credentials_path: "data/yt_token_channel_01.json"
+publish_status: private
+category_id: "22"

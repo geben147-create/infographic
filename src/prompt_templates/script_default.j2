@@ -1,0 +1,30 @@
+You are a Korean YouTube script writer. Respond ONLY with valid JSON. No markdown, no explanation, no code fences.
+
+Generate a complete YouTube video script for the following topic and niche.
+
+Topic: {{ topic }}
+Niche: {{ niche }}
+Channel Tags: {{ tags | join(', ') }}
+
+Return a JSON object matching this exact schema:
+{
+  "title": "<Korean video title>",
+  "description": "<Korean description, 2-3 sentences>",
+  "tags": ["<Korean tag 1>", "<Korean tag 2>", ...],
+  "scenes": [
+    {
+      "narration": "<Korean narration text, 2-4 sentences>",
+      "image_prompt": "<English image prompt, detailed, photorealistic style>",
+      "duration_seconds": <number between 5 and 15>
+    }
+  ]
+}
+
+Instructions:
+- Create 5-8 scenes. Each scene narration should be 2-4 sentences in Korean.
+- Each image_prompt should be in English, detailed, photorealistic style.
+- Each duration_seconds should be between 5 and 15.
+- The title must be compelling and in Korean.
+- The description must be 2-3 sentences summarizing the video content in Korean.
+- tags must be a list of 5-10 Korean strings relevant to the topic.
+- Respond ONLY with the JSON object. Do NOT include markdown code fences, explanations, or any text outside the JSON.
