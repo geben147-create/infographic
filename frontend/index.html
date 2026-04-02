@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Pipeline Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>YouTube Pipeline Dashboard</h1>
+    <p id="last-updated">Last updated: --</p>
+  </header>
+
+  <main>
+    <section id="cost-summary">
+      <h2>Cost Summary (Last 30 Days)</h2>
+      <div id="cost-cards" class="card-grid">
+        <!-- Populated by JS: total card + per-channel cards -->
+      </div>
+    </section>
+
+    <section id="runs-section">
+      <h2>Pipeline Runs</h2>
+      <div class="filters">
+        <select id="channel-filter">
+          <option value="">All Channels</option>
+        </select>
+        <button id="refresh-btn" class="btn btn-refresh">Refresh</button>
+      </div>
+      <div id="runs-error" class="error-banner" style="display:none;"></div>
+      <table id="runs-table">
+        <thead>
+          <tr>
+            <th>Workflow ID</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Cost (USD)</th>
+            <th>Started</th>
+            <th>Completed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="runs-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+      <div class="pagination">
+        <button id="prev-btn" disabled>Previous</button>
+        <span id="page-info">Page 1</span>
+        <button id="next-btn">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
