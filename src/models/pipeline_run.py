@@ -16,3 +16,4 @@ class PipelineRun(SQLModel, table=True):
     completed_at: Optional[datetime] = Field(default=None)
     error_message: Optional[str] = Field(default=None)
     result_json: Optional[str] = Field(default=None)
+    total_cost_usd: Optional[float] = Field(default=None)
