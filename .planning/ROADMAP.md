@@ -67,11 +67,11 @@ Plans:
   3. Multiple videos can be queued in a single batch command and execute sequentially overnight without manual intervention
   4. A scheduled Temporal workflow triggers video generation and upload at a configured future date/time without manual triggering
   5. A FastAPI dashboard endpoint and the Temporal Web UI together show per-video API costs (fal.ai, Gemini) and current pipeline run status
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 03-01-PLAN.md — Quality gate: signal handler, approval endpoint, video preview, config toggle
-- [ ] 03-02-PLAN.md — Batch runner CLI + Schedule CLI + cost DB migration
+- [x] 03-02-PLAN.md — Batch runner CLI + Schedule CLI + cost DB migration
 - [ ] 03-03-PLAN.md — Dashboard endpoints + integration verification
 
 ## Progress
@@ -83,4 +83,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
 | 2. Content Pipeline | 6/7 | In Progress|  |
-| 3. Production Operations | 0/3 | Not started | - |
+| 3. Production Operations | 1/3 | In Progress|  |

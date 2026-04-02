@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Checkpoint: Task 3 human-verify — waiting for human approval of Phase 2 test suite"
-last_updated: "2026-04-02T02:20:37.550Z"
+stopped_at: Completed 03-production-operations 03-02-PLAN.md
+last_updated: "2026-04-02T07:39:07.898Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 14
+  completed_plans: 12
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P05 | 6 | 2 tasks | 4 files |
 | Phase 02-content-pipeline P06 | 8 | 2 tasks | 11 files |
 | Phase 02-content-pipeline P07 | 6 | 2 tasks | 3 files |
+| Phase 03-production-operations P02 | 15 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: ContentPipelineWorkflow registered on all 3 worker queues — Temporal requires workflow class registered on every worker that executes it
 - [Phase 02-content-pipeline]: Patch src.config.settings.* (not src.activities.image_gen.settings) for lazy-imported settings in activity tests
 - [Phase 02-content-pipeline]: FastAPI TestClient with fake lifespan factory avoids Temporal connection in pipeline API tests
+- [Phase 03-production-operations]: Inject client parameter into run_batch() and schedule_one() for testability without live Temporal
+- [Phase 03-production-operations]: ScheduleCalendarSpec fields require Sequence[ScheduleRange] not bare ints per Temporal Python SDK
+- [Phase 03-production-operations]: total_cost_usd is Optional[float] (nullable) in PipelineRun — existing rows predate cost tracking
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T02:04:06.189Z
-Stopped at: Checkpoint: Task 3 human-verify — waiting for human approval of Phase 2 test suite
+Last session: 2026-04-02T07:39:07.893Z
+Stopped at: Completed 03-production-operations 03-02-PLAN.md
 Resume file: None
