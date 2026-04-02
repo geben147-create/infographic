@@ -311,8 +311,11 @@ tags:
 
         captured_body = {}
 
-        async def mock_post(url, **kwargs):
-            captured_body.update(kwargs.get("json", {}))
+        async def mock_post(self_or_url, url_or_nothing=None, **kwargs):
+            # httpx.AsyncClient.post is called as client.post(url, json=...)
+            # When patching the method, self is the first arg
+            body = kwargs.get("json", {})
+            captured_body.update(body)
             resp = MagicMock()
             resp.raise_for_status = MagicMock()
             resp.json.return_value = {"response": VALID_SCRIPT_JSON}
