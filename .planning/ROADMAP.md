@@ -52,7 +52,7 @@ Plans:
 - [x] 02-01-PLAN.md — Provider abstraction + Channel config + Pydantic models + API schemas
 - [x] 02-02-PLAN.md — Channel config YAMLs + Prompt templates + Setup scripts
 - [x] 02-03-PLAN.md — Script generation (LLM) + TTS audio activities
-- [ ] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
+- [x] 02-04-PLAN.md — Image generation + Video generation + Cost tracker
 - [ ] 02-05-PLAN.md — FFmpeg video assembly + Thumbnail generation
 - [ ] 02-06-PLAN.md — YouTube upload + ContentPipelineWorkflow + API endpoints + Worker registration
 - [ ] 02-07-PLAN.md — Integration tests + Multi-channel validation + Human verification
@@ -78,5 +78,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 4/4 | Complete    | 2026-04-02 |
-| 2. Content Pipeline | 3/7 | In Progress|  |
+| 2. Content Pipeline | 4/7 | In Progress|  |
 | 3. Production Operations | 0/TBD | Not started | - |

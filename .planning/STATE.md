@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-content-pipeline 02-03-PLAN.md
-last_updated: "2026-04-02T01:34:24.222Z"
+stopped_at: Wave 2 complete (02-03, 02-04)
+last_updated: "2026-04-02T01:35:00.000Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-infrastructure P04 | 814 | 2 tasks | 4 files |
 | Phase 02-content-pipeline P01 | 15 | 2 tasks | 11 files |
 | Phase 02-content-pipeline P03 | 9 | 2 tasks | 6 files |
+| Phase 02-content-pipeline P04 | 592 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 02-content-pipeline]: Module-level _synthesize helpers (not class methods) allow direct patch target in TTS tests without complex class mock setup
 - [Phase 02-content-pipeline]: ApplicationError(non_retryable=True) on missing TTS install — Temporal should not retry missing-library failures
 - [Phase 02-content-pipeline]: NotImplementedError for non-local LLM providers in generate_script — cloud LLM deferred to Plan 07
+- [Phase 02-content-pipeline]: settings imported at module level in video_gen.py so tests can patch src.activities.video_gen.settings
+- [Phase 02-content-pipeline]: CostTracker uses Windows lock-file sentinel (.lock) instead of msvcrt fd-based locking which is unreliable with ftruncate
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T01:34:24.217Z
-Stopped at: Completed 02-content-pipeline 02-03-PLAN.md
+Last session: 2026-04-02T01:35:00.000Z
+Stopped at: Wave 2 complete (02-03, 02-04)
 Resume file: None
