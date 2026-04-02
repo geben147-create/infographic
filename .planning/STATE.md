@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-production-operations 03-02-PLAN.md
-last_updated: "2026-04-02T07:39:07.898Z"
+stopped_at: "Completed 03-production-operations 03-03-PLAN.md (checkpoint:human-verify pending)"
+last_updated: "2026-04-02T07:50:54.931Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 14
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-content-pipeline P06 | 8 | 2 tasks | 11 files |
 | Phase 02-content-pipeline P07 | 6 | 2 tasks | 3 files |
 | Phase 03-production-operations P02 | 15 | 2 tasks | 7 files |
+| Phase 03-production-operations P03 | 12 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 03-production-operations]: Inject client parameter into run_batch() and schedule_one() for testability without live Temporal
 - [Phase 03-production-operations]: ScheduleCalendarSpec fields require Sequence[ScheduleRange] not bare ints per Temporal Python SDK
 - [Phase 03-production-operations]: total_cost_usd is Optional[float] (nullable) in PipelineRun — existing rows predate cost tracking
+- [Phase 03-production-operations]: FastAPI get_db_session() uses generator (yield) pattern instead of raw Session return — required for Depends() to properly close sessions
+- [Phase 03-production-operations]: Tests use StaticPool for in-memory SQLite so all FastAPI TestClient threads share the same database instance
+- [Phase 03-production-operations]: Cost aggregation excludes NULL total_cost_usd rows to handle runs predating cost tracking column
 
 ### Pending Todos
 
@@ -112,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T07:39:07.893Z
-Stopped at: Completed 03-production-operations 03-02-PLAN.md
+Last session: 2026-04-02T07:50:54.925Z
+Stopped at: Completed 03-production-operations 03-03-PLAN.md (checkpoint:human-verify pending)
 Resume file: None

@@ -45,7 +45,7 @@
 - [x] **OPS-03**: 배치 처리 모드 — 여러 영상을 큐에 넣어 야간 일괄 생성할 수 있다
 - [x] **OPS-04**: 콘텐츠 캘린더 — Temporal scheduled workflows로 예약 발행한다
 - [x] **OPS-05**: 영상별 API 비용을 추적하고 대시보드에 표시한다 (fal.ai, Gemini 등 유료 API 호출당 비용)
-- [ ] **OPS-06**: 파이프라인 상태 대시보드 — Temporal Web UI + FastAPI 커스텀 엔드포인트
+- [x] **OPS-06**: 파이프라인 상태 대시보드 — Temporal Web UI + FastAPI 커스텀 엔드포인트
 
 ### File Management (FILE)
 
@@ -99,7 +99,7 @@
 | OPS-03 | Phase 3 | Complete |
 | OPS-04 | Phase 3 | Complete |
 | OPS-05 | Phase 3 | Complete |
-| OPS-06 | Phase 3 | Pending |
+| OPS-06 | Phase 3 | Complete |
 
 ---
 *Generated: 2026-04-01*
