@@ -3,7 +3,7 @@
 
 **YouTube Video Automation Pipeline**
 
-RTX 4070 8GB + 클라우드 하이브리드 환경에서 동작하는 다채널 YouTube 영상 자동 제작 파이프라인. 토픽/키워드 입력만으로 스크립트 생성, AI 이미지/영상 생성, 한국어 TTS, FFmpeg 조립, YouTube 업로드까지 전 과정을 자동화한다.
+RTX 4070 Laptop GPU (4GB VRAM) + 클라우드 하이브리드 환경에서 동작하는 다채널 YouTube 영상 자동 제작 파이프라인. 토픽/키워드 입력만으로 스크립트 생성, AI 이미지/영상 생성, 한국어 TTS, FFmpeg 조립, YouTube 업로드까지 전 과정을 자동화한다.
 
 **Core Value:** **토픽 하나로 완성된 YouTube 영상을 자동 생성하고 업로드하는 것.** 단일 채널에서 end-to-end 파이프라인이 동작해야 나머지 모든 기능(다채널, 배치, 품질 게이트)이 의미를 갖는다.
 <!-- GSD:project-end -->
@@ -41,8 +41,8 @@ RTX 4070 8GB + 클라우드 하이브리드 환경에서 동작하는 다채널 
 | **Qwen3-14B** (local via Ollama) | Latest | Script generation | Best value for creative writing, Korean support, zero API cost | HIGH |
 | **Gemini 2.5 Pro** (cloud API) | Latest | Complex script generation, fact-checking | Longer context, better reasoning for complex topics | MEDIUM |
 | **ComfyUI** | Latest | Image generation orchestration | Headless API mode, exports workflow as JSON, massive node ecosystem | HIGH |
-| **SDXL** (local) | SDXL 1.0 + community checkpoints | Image generation (primary) | Runs well on 8GB VRAM, massive LoRA ecosystem, 5-10s per image | HIGH |
-| **FLUX Q4 GGUF** (local) | FLUX.1-dev quantized | Image generation (high quality) | 90% of full quality on 8GB via Q4 quantization, 45-60s per image | MEDIUM |
+| **SDXL** (local) | SDXL 1.0 + community checkpoints | Image generation (primary) | Runs well on 4GB VRAM (Laptop GPU), massive LoRA ecosystem, 5-10s per image | HIGH |
+| **FLUX Q4 GGUF** (local) | FLUX.1-dev quantized | Image generation (high quality) | 90% of full quality via Q4 quantization, borderline on 4GB VRAM — use with caution | MEDIUM |
 | **fal.ai** | API | Cloud image/video generation fallback | 600+ models, single API key, $0.05-0.40/sec video, fast cold starts (5-10s) | HIGH |
 | **WAN 2.2/2.5** via fal.ai | Latest | Video generation (image-to-video) | $0.05-0.10/sec, LoRA support, high motion diversity | HIGH |
 | **IndexTTS-2** | Latest | Korean TTS (primary) | Zero-shot, Korean native, 150ms streaming latency, 30-50% fewer pronunciation errors vs v1 | HIGH |
@@ -86,7 +86,7 @@ RTX 4070 8GB + 클라우드 하이브리드 환경에서 동작하는 다채널 
 | Image Gen | SDXL (local) | FLUX full (local) | Needs 12GB+ VRAM at full precision, too slow at Q4 for batch |
 | Image Gen | SDXL (local) | PixArt-Sigma | Good quality/size ratio but smaller ecosystem, fewer LoRAs |
 | Video Gen | WAN via fal.ai | Sora 2 | $0.30-0.50/sec vs $0.05-0.10/sec, cost prohibitive at scale |
-| Video Gen | WAN via fal.ai | Local WAN 2.2 | 8GB VRAM insufficient for video gen models, cloud is correct choice |
+| Video Gen | WAN via fal.ai | Local WAN 2.2 | 4GB VRAM (Laptop GPU) insufficient for video gen models, cloud is correct choice |
 | TTS | IndexTTS-2 | CosyVoice 3 | IndexTTS-2 has better Korean support and lower latency |
 | TTS | IndexTTS-2 | Kokoro | Only 82M params, English-focused, weaker Korean |
 | Database | SQLite | PostgreSQL | Overkill for single-server pipeline, adds ops overhead |
@@ -96,7 +96,7 @@ RTX 4070 8GB + 클라우드 하이브리드 환경에서 동작하는 다채널 
 | FFmpeg wrapper | ffmpeg-python | subprocess raw | ffmpeg-python provides composable filter graphs, less error-prone |
 | FFmpeg wrapper | ffmpeg-python | ffmpeg-generator | Less mature, smaller community |
 ## Architecture: Local vs Cloud Split
-### Local (RTX 4070 8GB)
+### Local (RTX 4070 Laptop GPU, 4GB VRAM)
 - **Image generation**: SDXL via ComfyUI (5-10s/image)
 - **FLUX Q4**: For hero images needing higher quality (45-60s/image)
 - **LLM inference**: Qwen3-14B via Ollama (script generation)
