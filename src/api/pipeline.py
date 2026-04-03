@@ -12,13 +12,16 @@ Exposes the ContentPipelineWorkflow via FastAPI:
 from __future__ import annotations
 
 import pathlib
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
+from sqlmodel import Session
 from temporalio.service import RPCError
 
 from src.models.channel_config import load_channel_config
+from src.models.pipeline_run import PipelineRun
 from src.schemas.pipeline import (
     ApprovalSignal,
     ApproveRequest,
@@ -30,6 +33,7 @@ from src.schemas.pipeline import (
     PipelineTriggerResponse,
 )
 from src.services.cost_tracker import CostTracker
+from src.services.db_service import create_pipeline_run, engine
 from src.workflows.content_pipeline import ContentPipelineWorkflow, PipelineParams
 
 router = APIRouter(prefix="/api/pipeline")
@@ -67,6 +71,15 @@ async def trigger_pipeline(
         id=workflow_id,
         task_queue="gpu-queue",
     )
+
+    # Persist initial pipeline run record so the dashboard shows it immediately.
+    with Session(engine) as session:
+        create_pipeline_run(session, {
+            "workflow_id": workflow_id,
+            "channel_id": body.channel_id,
+            "status": "running",
+            "started_at": datetime.now(timezone.utc),
+        })
 
     # Rough cost estimate from channel config (optional, non-blocking)
     estimated_cost: float | None = None

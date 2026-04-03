@@ -10,6 +10,7 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
 from src.activities.cleanup import cleanup_intermediate_files
+from src.activities.db_write import save_pipeline_run_result
 from src.activities.pipeline import setup_pipeline_dirs
 from src.activities.stubs import stub_cpu_activity
 from src.activities.video_assembly import assemble_video
@@ -32,6 +33,7 @@ async def main() -> None:
             setup_pipeline_dirs,
             cleanup_intermediate_files,
             assemble_video,
+            save_pipeline_run_result,
         ],
         max_concurrent_activities=4,
     )

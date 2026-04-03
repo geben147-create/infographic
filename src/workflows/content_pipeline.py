@@ -29,6 +29,9 @@ with workflow.unsafe.imports_passed_through():
     from src.activities.video_assembly import AssemblyInput, AssemblyOutput
     from src.activities.thumbnail import ThumbnailInput
 
+    # DB write activity — persists final result to pipeline_runs table
+    from src.activities.db_write import SaveRunResultInput
+
     # 03-01: quality gate signal payload
     from src.schemas.pipeline import ApprovalSignal
 
@@ -91,6 +94,29 @@ class ContentPipelineWorkflow:
         self._approved = payload.approved
         self._reject_reason = payload.reason
 
+    async def _save_result(
+        self,
+        workflow_id: str,
+        result: "PipelineResult",
+        error_message: str = "",
+    ) -> None:
+        """Persist final run state to pipeline_runs via DB write activity (cpu-queue)."""
+        await workflow.execute_activity(
+            "save_pipeline_run_result",
+            SaveRunResultInput(
+                workflow_id=workflow_id,
+                status=result.status,
+                video_path=result.video_path,
+                thumbnail_path=result.thumbnail_path,
+                total_cost_usd=result.total_cost_usd,
+                scenes_count=result.scenes_count,
+                error_message=error_message,
+            ),
+            task_queue="cpu-queue",
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=_RETRY_DEFAULT,
+        )
+
     @workflow.run
     async def run(self, params: PipelineParams) -> PipelineResult:
         """Execute the full pipeline from topic to video assembly.
@@ -107,171 +133,200 @@ class ContentPipelineWorkflow:
         """
         total_cost: float = 0.0
 
-        # ------------------------------------------------------------------ #
-        # Step 1: Setup run directory tree (cpu-queue)                         #
-        # ------------------------------------------------------------------ #
-        setup_out: SetupDirsOutput = await workflow.execute_activity(
-            "setup_pipeline_dirs",
-            SetupDirsInput(workflow_run_id=params.run_id),
-            task_queue="cpu-queue",
-            start_to_close_timeout=timedelta(seconds=30),
-            retry_policy=_RETRY_DEFAULT,
-            result_type=SetupDirsOutput,
-        )
-        run_dir: str = setup_out.base_path
-
-        # ------------------------------------------------------------------ #
-        # Step 2: Generate script (gpu-queue — Ollama/Qwen3 uses GPU)         #
-        # ------------------------------------------------------------------ #
-        script_out: ScriptGenOutput = await workflow.execute_activity(
-            "generate_script",
-            ScriptGenInput(
-                topic=params.topic,
-                channel_id=params.channel_id,
-                run_dir=run_dir,
-            ),
-            task_queue="gpu-queue",
-            start_to_close_timeout=timedelta(minutes=5),
-            retry_policy=_RETRY_DEFAULT,
-            result_type=ScriptGenOutput,
-        )
-        script = script_out.script
-
-        # ------------------------------------------------------------------ #
-        # Step 3: Per-scene image + TTS (gpu-queue, serial due to VRAM limit)  #
-        # ------------------------------------------------------------------ #
-        tts_outputs: list = []
-        image_paths: list[str] = []
-
-        for i, scene in enumerate(script.scenes):
-            img_out: ImageGenOutput = await workflow.execute_activity(
-                "generate_scene_image",
-                ImageGenInput(
-                    scene_index=i,
-                    prompt=scene.image_prompt,
-                    channel_id=params.channel_id,
-                    run_dir=run_dir,
-                ),
-                task_queue="gpu-queue",
-                start_to_close_timeout=timedelta(minutes=10),
+        try:
+            # ------------------------------------------------------------------ #
+            # Step 1: Setup run directory tree (cpu-queue)                         #
+            # ------------------------------------------------------------------ #
+            setup_out: SetupDirsOutput = await workflow.execute_activity(
+                "setup_pipeline_dirs",
+                SetupDirsInput(workflow_run_id=params.run_id),
+                task_queue="cpu-queue",
+                start_to_close_timeout=timedelta(seconds=30),
                 retry_policy=_RETRY_DEFAULT,
-                result_type=ImageGenOutput,
+                result_type=SetupDirsOutput,
             )
-            image_paths.append(img_out.file_path)
+            run_dir: str = setup_out.base_path
 
-            tts_out: TTSOutput = await workflow.execute_activity(
-                "generate_tts_audio",
-                TTSInput(
-                    scene_index=i,
-                    text=scene.narration,
+            # ------------------------------------------------------------------ #
+            # Step 2: Generate script (gpu-queue — Ollama/Qwen3 uses GPU)         #
+            # ------------------------------------------------------------------ #
+            script_out: ScriptGenOutput = await workflow.execute_activity(
+                "generate_script",
+                ScriptGenInput(
+                    topic=params.topic,
                     channel_id=params.channel_id,
                     run_dir=run_dir,
                 ),
                 task_queue="gpu-queue",
                 start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=_RETRY_DEFAULT,
-                result_type=TTSOutput,
+                result_type=ScriptGenOutput,
             )
-            tts_outputs.append(tts_out)
+            script = script_out.script
 
-        # ------------------------------------------------------------------ #
-        # Step 4: Per-scene video generation (gpu-queue)                       #
-        # ------------------------------------------------------------------ #
-        for i, scene in enumerate(script.scenes):
-            tts_out = tts_outputs[i]
-            video_out: VideoGenOutput = await workflow.execute_activity(
-                "generate_scene_video",
-                VideoGenInput(
-                    scene_index=i,
+            # ------------------------------------------------------------------ #
+            # Step 3: Per-scene image + TTS (gpu-queue, serial due to VRAM limit)  #
+            # ------------------------------------------------------------------ #
+            tts_outputs: list = []
+            image_paths: list[str] = []
+
+            for i, scene in enumerate(script.scenes):
+                img_out: ImageGenOutput = await workflow.execute_activity(
+                    "generate_scene_image",
+                    ImageGenInput(
+                        scene_index=i,
+                        prompt=scene.image_prompt,
+                        channel_id=params.channel_id,
+                        run_dir=run_dir,
+                    ),
+                    task_queue="gpu-queue",
+                    start_to_close_timeout=timedelta(minutes=10),
+                    retry_policy=_RETRY_DEFAULT,
+                    result_type=ImageGenOutput,
+                )
+                image_paths.append(img_out.file_path)
+
+                tts_out: TTSOutput = await workflow.execute_activity(
+                    "generate_tts_audio",
+                    TTSInput(
+                        scene_index=i,
+                        text=scene.narration,
+                        channel_id=params.channel_id,
+                        run_dir=run_dir,
+                    ),
+                    task_queue="gpu-queue",
+                    start_to_close_timeout=timedelta(minutes=5),
+                    retry_policy=_RETRY_DEFAULT,
+                    result_type=TTSOutput,
+                )
+                tts_outputs.append(tts_out)
+
+            # ------------------------------------------------------------------ #
+            # Step 4: Per-scene video generation (gpu-queue)                       #
+            # ------------------------------------------------------------------ #
+            for i, scene in enumerate(script.scenes):
+                tts_out = tts_outputs[i]
+                video_out: VideoGenOutput = await workflow.execute_activity(
+                    "generate_scene_video",
+                    VideoGenInput(
+                        scene_index=i,
+                        channel_id=params.channel_id,
+                        run_dir=run_dir,
+                        image_path=image_paths[i],
+                        prompt=scene.image_prompt,
+                        duration_seconds=tts_out.duration_seconds,
+                    ),
+                    task_queue="gpu-queue",
+                    start_to_close_timeout=timedelta(minutes=10),
+                    retry_policy=_RETRY_DEFAULT,
+                    result_type=VideoGenOutput,
+                )
+                total_cost += video_out.cost_usd
+
+            # ------------------------------------------------------------------ #
+            # Step 5: Generate thumbnail (gpu-queue — uses ComfyUI/Pillow)         #
+            # ------------------------------------------------------------------ #
+            await workflow.execute_activity(
+                "generate_thumbnail",
+                ThumbnailInput(
+                    title=script.title,
                     channel_id=params.channel_id,
                     run_dir=run_dir,
-                    image_path=image_paths[i],
-                    prompt=scene.image_prompt,
-                    duration_seconds=tts_out.duration_seconds,
                 ),
                 task_queue="gpu-queue",
+                start_to_close_timeout=timedelta(minutes=3),
+                retry_policy=_RETRY_DEFAULT,
+            )
+
+            # ------------------------------------------------------------------ #
+            # Step 6: Assemble final video (cpu-queue — FFmpeg)                    #
+            # ------------------------------------------------------------------ #
+            assembly_out: AssemblyOutput = await workflow.execute_activity(
+                "assemble_video",
+                AssemblyInput(
+                    scene_count=len(script.scenes),
+                    run_dir=run_dir,
+                ),
+                task_queue="cpu-queue",
                 start_to_close_timeout=timedelta(minutes=10),
                 retry_policy=_RETRY_DEFAULT,
-                result_type=VideoGenOutput,
+                result_type=AssemblyOutput,
             )
-            total_cost += video_out.cost_usd
 
-        # ------------------------------------------------------------------ #
-        # Step 5: Generate thumbnail (gpu-queue — uses ComfyUI/Pillow)         #
-        # ------------------------------------------------------------------ #
-        await workflow.execute_activity(
-            "generate_thumbnail",
-            ThumbnailInput(
-                title=script.title,
-                channel_id=params.channel_id,
-                run_dir=run_dir,
-            ),
-            task_queue="gpu-queue",
-            start_to_close_timeout=timedelta(minutes=3),
-            retry_policy=_RETRY_DEFAULT,
-        )
+            # ------------------------------------------------------------------ #
+            # Build paths for video and thumbnail (used in return and quality gate)#
+            # ------------------------------------------------------------------ #
+            thumbnail_path_str = str(
+                __import__("pathlib").Path(run_dir) / "thumbnails" / "thumbnail.jpg"
+            )
 
-        # ------------------------------------------------------------------ #
-        # Step 6: Assemble final video (cpu-queue — FFmpeg)                    #
-        # ------------------------------------------------------------------ #
-        assembly_out: AssemblyOutput = await workflow.execute_activity(
-            "assemble_video",
-            AssemblyInput(
-                scene_count=len(script.scenes),
-                run_dir=run_dir,
-            ),
-            task_queue="cpu-queue",
-            start_to_close_timeout=timedelta(minutes=10),
-            retry_policy=_RETRY_DEFAULT,
-            result_type=AssemblyOutput,
-        )
+            # ------------------------------------------------------------------ #
+            # Step 6.5: Quality gate — wait for human approval (preview only)      #
+            # ------------------------------------------------------------------ #
+            if params.quality_gate_enabled:
+                import asyncio as _asyncio
 
-        # ------------------------------------------------------------------ #
-        # Build paths for video and thumbnail (used in return and quality gate)#
-        # ------------------------------------------------------------------ #
-        thumbnail_path_str = str(
-            __import__("pathlib").Path(run_dir) / "thumbnails" / "thumbnail.jpg"
-        )
+                try:
+                    await workflow.wait_condition(
+                        lambda: self._approved or bool(self._reject_reason),
+                        timeout=timedelta(hours=24),
+                    )
+                except _asyncio.TimeoutError:
+                    timeout_result = PipelineResult(
+                        status="timeout_rejected",
+                        video_id=None,
+                        youtube_url=None,
+                        video_path=assembly_out.file_path,
+                        thumbnail_path=thumbnail_path_str,
+                        total_cost_usd=total_cost,
+                        scenes_count=len(script.scenes),
+                    )
+                    await self._save_result(params.run_id, timeout_result)
+                    return timeout_result
 
-        # ------------------------------------------------------------------ #
-        # Step 6.5: Quality gate — wait for human approval (preview only)      #
-        # ------------------------------------------------------------------ #
-        if params.quality_gate_enabled:
-            import asyncio as _asyncio
+                if not self._approved:
+                    rejected_result = PipelineResult(
+                        status="rejected",
+                        video_id=None,
+                        youtube_url=None,
+                        video_path=assembly_out.file_path,
+                        thumbnail_path=thumbnail_path_str,
+                        total_cost_usd=total_cost,
+                        scenes_count=len(script.scenes),
+                    )
+                    await self._save_result(
+                        params.run_id,
+                        rejected_result,
+                        error_message=self._reject_reason,
+                    )
+                    return rejected_result
 
-            try:
-                await workflow.wait_condition(
-                    lambda: self._approved or bool(self._reject_reason),
-                    timeout=timedelta(hours=24),
-                )
-            except _asyncio.TimeoutError:
-                return PipelineResult(
-                    status="timeout_rejected",
-                    video_id=None,
-                    youtube_url=None,
-                    video_path=assembly_out.file_path,
-                    thumbnail_path=thumbnail_path_str,
-                    total_cost_usd=total_cost,
-                    scenes_count=len(script.scenes),
-                )
-            if not self._approved:
-                return PipelineResult(
-                    status="rejected",
-                    video_id=None,
-                    youtube_url=None,
-                    video_path=assembly_out.file_path,
-                    thumbnail_path=thumbnail_path_str,
-                    total_cost_usd=total_cost,
-                    scenes_count=len(script.scenes),
-                )
+            # ------------------------------------------------------------------ #
+            # Step 7: Persist result to pipeline_runs (cpu-queue — SQLite write)   #
+            # ------------------------------------------------------------------ #
+            final_result = PipelineResult(
+                video_path=assembly_out.file_path,
+                thumbnail_path=thumbnail_path_str,
+                total_cost_usd=total_cost,
+                scenes_count=len(script.scenes),
+                status="ready_to_upload",
+            )
+            await self._save_result(params.run_id, final_result)
 
-        # ------------------------------------------------------------------ #
-        # Pipeline complete — files ready for manual YouTube upload            #
-        # ------------------------------------------------------------------ #
-        return PipelineResult(
-            video_path=assembly_out.file_path,
-            thumbnail_path=thumbnail_path_str,
-            total_cost_usd=total_cost,
-            scenes_count=len(script.scenes),
-            status="ready_to_upload",
-        )
+            # ------------------------------------------------------------------ #
+            # Pipeline complete — files ready for manual YouTube upload            #
+            # ------------------------------------------------------------------ #
+            return final_result
+
+        except Exception as exc:
+            # Write failed status to DB so the dashboard reflects the error.
+            failed_result = PipelineResult(
+                status="failed",
+                total_cost_usd=total_cost,
+            )
+            await self._save_result(
+                params.run_id,
+                failed_result,
+                error_message=str(exc),
+            )
+            raise
