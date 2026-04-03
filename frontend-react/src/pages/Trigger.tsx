@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { api, type ChannelWithStats } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -8,9 +8,15 @@ import { Sparkles, AlertTriangle } from 'lucide-react'
 
 export default function Trigger() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [topic, setTopic] = useState('')
   const [channelId, setChannelId] = useState('')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const ch = searchParams.get('channel')
+    if (ch) setChannelId(ch)
+  }, [searchParams])
 
   const { data: channelsData } = useQuery({
     queryKey: ['channels'],

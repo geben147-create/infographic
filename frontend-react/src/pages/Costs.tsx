@@ -114,19 +114,31 @@ export default function Costs() {
                   tick={{ fontSize: 11 }}
                   tickFormatter={(v) => v.slice(5)}
                 />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                <YAxis
+                  yAxisId="cost"
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v) => `$${v}`}
+                  orientation="left"
+                />
+                <YAxis
+                  yAxisId="runs"
+                  tick={{ fontSize: 11 }}
+                  orientation="right"
+                />
                 <Tooltip
-                  formatter={(val) => [`$${Number(val).toFixed(4)}`, 'Cost']}
+                  formatter={(val, name) => [
+                    name === 'cost' ? `$${Number(val).toFixed(4)}` : val,
+                    name === 'cost' ? 'Cost' : 'Runs'
+                  ]}
                   labelFormatter={(l) => `Date: ${l}`}
                 />
-                <Bar dataKey="cost" fill="#635bff" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="runs" dataKey="run_count" fill="#e0e7ff" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="cost" dataKey="cost" fill="#635bff" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-[280px] flex items-center justify-center text-sm text-text-tertiary">
-              {costs?.total_cost_usd === 0
-                ? 'All local processing — no cloud costs'
-                : 'No cost data for this period'}
+              No pipeline runs in this period
             </div>
           )}
         </div>

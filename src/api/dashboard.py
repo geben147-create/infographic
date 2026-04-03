@@ -36,6 +36,7 @@ def list_runs(
     limit: int = 20,
     offset: int = 0,
     channel_id: str | None = None,
+    status: str | None = None,
     session: Session = Depends(get_db_session),
 ) -> DashboardRunsResponse:
     """Return a paginated list of pipeline runs, sorted by started_at descending.
@@ -55,6 +56,10 @@ def list_runs(
     if channel_id:
         query = query.where(PipelineRun.channel_id == channel_id)
         count_query = count_query.where(PipelineRun.channel_id == channel_id)
+
+    if status:
+        query = query.where(PipelineRun.status == status)
+        count_query = count_query.where(PipelineRun.status == status)
 
     query = query.order_by(col(PipelineRun.started_at).desc())
     query = query.offset(offset).limit(limit)

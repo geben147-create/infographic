@@ -31,21 +31,19 @@ export default function Pipelines() {
   })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['runs', offset, channelFilter],
+    queryKey: ['runs', offset, channelFilter, statusFilter],
     queryFn: () =>
       api.getRuns({
         limit: PAGE_SIZE,
         offset,
         channel_id: channelFilter || undefined,
+        status: statusFilter || undefined,
       }),
     refetchInterval: 15000,
   })
 
   const runs = data?.runs || []
   const total = data?.total || 0
-  const filteredRuns = statusFilter
-    ? runs.filter((r: RunSummary) => r.status === statusFilter)
-    : runs
 
   return (
     <div>
@@ -91,7 +89,7 @@ export default function Pipelines() {
       {/* Table */}
       {isLoading ? (
         <TableSkeleton rows={8} />
-      ) : filteredRuns.length === 0 ? (
+      ) : runs.length === 0 ? (
         <div className="bg-surface rounded-xl border border-border">
           <EmptyState
             title="No pipelines found"
@@ -114,7 +112,7 @@ export default function Pipelines() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-light">
-              {filteredRuns.map((run: RunSummary) => (
+              {runs.map((run: RunSummary) => (
                 <tr
                   key={run.workflow_id}
                   className={`hover:bg-surface-hover transition-colors ${

@@ -337,6 +337,65 @@ async def get_pipeline_video(workflow_id: str) -> FileResponse:
     )
 
 
+@router.get("/{workflow_id}/artifacts")
+async def get_pipeline_artifacts(workflow_id: str) -> dict:
+    """Return available pipeline artifacts (script, scene images, audio files).
+
+    Scans the pipeline directory for generated files and returns their paths.
+    """
+    import json
+
+    base = pathlib.Path("data/pipeline") / workflow_id
+    if not base.exists():
+        raise HTTPException(status_code=404, detail=f"Pipeline directory not found: {workflow_id}")
+
+    artifacts: dict = {"workflow_id": workflow_id, "script": None, "scenes": [], "audio": [], "video_clips": []}
+
+    # Script
+    script_path = base / "script.json"
+    if script_path.exists():
+        try:
+            artifacts["script"] = json.loads(script_path.read_text(encoding="utf-8"))
+        except Exception:
+            artifacts["script"] = None
+
+    # Scene images
+    images_dir = base / "images"
+    if images_dir.exists():
+        artifacts["scenes"] = sorted([
+            {"filename": f.name, "url": f"/api/pipeline/{workflow_id}/scene/{f.name}"}
+            for f in images_dir.iterdir() if f.suffix in (".jpg", ".png", ".webp")
+        ], key=lambda x: x["filename"])
+
+    # TTS audio
+    audio_dir = base / "audio"
+    if audio_dir.exists():
+        artifacts["audio"] = sorted([
+            {"filename": f.name, "url": f"/api/pipeline/{workflow_id}/audio/{f.name}"}
+            for f in audio_dir.iterdir() if f.suffix in (".wav", ".mp3")
+        ], key=lambda x: x["filename"])
+
+    # Video clips
+    clips_dir = base / "videos"
+    if clips_dir.exists():
+        artifacts["video_clips"] = sorted([
+            {"filename": f.name, "url": f"/api/pipeline/{workflow_id}/clip/{f.name}"}
+            for f in clips_dir.iterdir() if f.suffix in (".mp4", ".webm")
+        ], key=lambda x: x["filename"])
+
+    return artifacts
+
+
+@router.get("/{workflow_id}/scene/{filename}")
+async def get_scene_image(workflow_id: str, filename: str) -> FileResponse:
+    """Serve a scene image file."""
+    img_path = pathlib.Path("data/pipeline") / workflow_id / "images" / filename
+    if not img_path.exists():
+        raise HTTPException(status_code=404, detail="Scene image not found")
+    media_type = "image/jpeg" if img_path.suffix == ".jpg" else "image/png"
+    return FileResponse(path=str(img_path), media_type=media_type)
+
+
 @router.delete("/{workflow_id}")
 async def cancel_pipeline(
     workflow_id: str,

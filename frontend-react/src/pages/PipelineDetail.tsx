@@ -99,6 +99,12 @@ export default function PipelineDetail() {
     enabled: !!id,
   })
 
+  const { data: artifacts } = useQuery({
+    queryKey: ['pipeline-artifacts', id],
+    queryFn: () => api.getArtifacts(id!),
+    enabled: !!id && !isLoading,
+  })
+
   const approveMutation = useMutation({
     mutationFn: (approved: boolean) => api.approvePipeline(id!, approved),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pipeline-status', id] }),
@@ -211,6 +217,56 @@ export default function PipelineDetail() {
               <pre className="text-xs text-red-700 bg-red-100 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
                 {status.error}
               </pre>
+            </div>
+          )}
+
+          {/* Script */}
+          {artifacts?.script && (
+            <div className="bg-surface rounded-xl border border-border p-5">
+              <h3 className="text-sm font-semibold mb-3">Script</h3>
+              {artifacts.script.title && (
+                <p className="text-base font-semibold mb-1">{artifacts.script.title}</p>
+              )}
+              {artifacts.script.description && (
+                <p className="text-sm text-text-secondary mb-3">{artifacts.script.description}</p>
+              )}
+              {artifacts.script.scenes && artifacts.script.scenes.length > 0 && (
+                <div className="space-y-2 mt-3">
+                  {artifacts.script.scenes.map((scene, i) => (
+                    <div key={i} className="bg-surface-secondary rounded-lg p-3">
+                      <p className="text-xs font-semibold text-text-tertiary mb-1">Scene {i + 1}</p>
+                      {scene.narration && <p className="text-sm">{scene.narration}</p>}
+                      {scene.image_prompt && (
+                        <p className="text-xs text-text-tertiary mt-1 italic">{scene.image_prompt}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Scene Gallery */}
+          {artifacts?.scenes && artifacts.scenes.length > 0 && (
+            <div className="bg-surface rounded-xl border border-border p-5">
+              <h3 className="text-sm font-semibold mb-3">Scene Images ({artifacts.scenes.length})</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {artifacts.scenes.map((scene) => (
+                  <a
+                    key={scene.filename}
+                    href={scene.url}
+                    target="_blank"
+                    rel="noopener"
+                    className="block aspect-video rounded-lg overflow-hidden bg-gray-100 hover:ring-2 hover:ring-primary-400 transition-all"
+                  >
+                    <img
+                      src={scene.url}
+                      alt={scene.filename}
+                      className="w-full h-full object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 

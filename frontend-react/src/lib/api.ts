@@ -158,11 +158,12 @@ export interface AlertEntry {
 
 export const api = {
   // Dashboard
-  getRuns: (params?: { limit?: number; offset?: number; channel_id?: string }) => {
+  getRuns: (params?: { limit?: number; offset?: number; channel_id?: string; status?: string }) => {
     const qs = new URLSearchParams()
     if (params?.limit) qs.set('limit', String(params.limit))
     if (params?.offset) qs.set('offset', String(params.offset))
     if (params?.channel_id) qs.set('channel_id', params.channel_id)
+    if (params?.status) qs.set('status', params.status)
     return fetchJson<DashboardRunsResponse>(`/api/dashboard/runs?${qs}`)
   },
 
@@ -206,6 +207,15 @@ export const api = {
 
   cancelPipeline: (id: string) =>
     fetchJson<{ cancelled: boolean }>(`/api/pipeline/${id}`, { method: 'DELETE' }),
+
+  getArtifacts: (id: string) =>
+    fetchJson<{
+      workflow_id: string
+      script: { title?: string; description?: string; scenes?: Array<{ narration?: string; image_prompt?: string }> } | null
+      scenes: Array<{ filename: string; url: string }>
+      audio: Array<{ filename: string; url: string }>
+      video_clips: Array<{ filename: string; url: string }>
+    }>(`/api/pipeline/${id}/artifacts`),
 
   // Channels
   getChannels: () => fetchJson<ChannelListResponse>('/api/channels'),
