@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Automation Pipeline — Project Status</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a27;
+    --border: #2a2a3d;
+    --primary: #635bff;
+    --primary-light: #7c75ff;
+    --green: #00d4aa;
+    --amber: #f5a623;
+    --red: #ff4d4f;
+    --blue: #3b82f6;
+    --text: #e8e8ed;
+    --text-2: #9898ab;
+    --text-3: #6b6b80;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Hero */
+  .hero { text-align: center; padding: 4rem 0 3rem; }
+  .hero h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.75rem; }
+  .hero p { color: var(--text-2); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+  .hero-badges { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+  .badge { padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid; }
+  .badge-green { color: var(--green); border-color: rgba(0,212,170,0.3); background: rgba(0,212,170,0.08); }
+  .badge-amber { color: var(--amber); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.08); }
+  .badge-blue { color: var(--blue); border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.08); }
+  .badge-purple { color: var(--primary-light); border-color: rgba(124,117,255,0.3); background: rgba(124,117,255,0.08); }
+
+  /* Stats Row */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
+  .stat-value { font-size: 2rem; font-weight: 800; color: var(--primary-light); }
+  .stat-label { font-size: 0.8rem; color: var(--text-3); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Section */
+  .section { margin: 3rem 0; }
+  .section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-title span { font-size: 1.2rem; }
+
+  /* Phase Timeline */
+  .timeline { position: relative; }
+  .phase { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+  .phase::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .phase-done::before { background: var(--green); }
+  .phase-current::before { background: var(--amber); }
+  .phase-todo::before { background: var(--border); }
+  .phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .phase-name { font-weight: 700; font-size: 1rem; }
+  .phase-status { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.2rem 0.6rem; border-radius: 4px; }
+  .status-done { color: var(--green); background: rgba(0,212,170,0.1); }
+  .status-progress { color: var(--amber); background: rgba(245,166,35,0.1); }
+  .status-todo { color: var(--text-3); background: rgba(107,107,128,0.1); }
+  .phase-desc { color: var(--text-2); font-size: 0.85rem; margin-bottom: 0.75rem; }
+  .phase-tasks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .task-chip { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+  .task-done { text-decoration: line-through; opacity: 0.5; }
+  .progress-bar { height: 6px; background: var(--surface-2); border-radius: 3px; margin-top: 0.75rem; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .fill-green { background: var(--green); }
+  .fill-amber { background: var(--amber); }
+
+  /* Architecture */
+  .arch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .arch-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .arch-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--primary-light); }
+  .arch-card ul { list-style: none; font-size: 0.8rem; color: var(--text-2); }
+  .arch-card li { padding: 0.2rem 0; }
+  .arch-card li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 0.5rem; vertical-align: middle; }
+  .li-green::before { background: var(--green); }
+  .li-amber::before { background: var(--amber); }
+  .li-red::before { background: var(--red); }
+  .li-blue::before { background: var(--blue); }
+
+  /* Feature Table */
+  .feature-table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .feature-table th { background: var(--surface-2); text-align: left; padding: 0.75rem 1rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); font-weight: 700; }
+  .feature-table td { padding: 0.75rem 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; }
+  .feature-table tr:hover { background: var(--surface-2); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.5rem; }
+  .dot-green { background: var(--green); }
+  .dot-amber { background: var(--amber); }
+  .dot-red { background: var(--red); }
+  .dot-blue { background: var(--blue); }
+
+  /* Cost */
+  .cost-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .cost-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .cost-card h4 { font-size: 0.85rem; font-weight: 600; color: var(--text-2); margin-bottom: 0.75rem; }
+  .cost-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.85rem; border-bottom: 1px solid rgba(42,42,61,0.5); }
+  .cost-row:last-child { border-bottom: none; font-weight: 700; color: var(--primary-light); }
+
+  /* Links */
+  .links { display: flex; gap: 1rem; justify-content: center; margin: 3rem 0; flex-wrap: wrap; }
+  .link-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+  .link-primary { background: var(--primary); color: white; }
+  .link-primary:hover { background: var(--primary-light); }
+  .link-outline { border: 1px solid var(--border); color: var(--text); }
+  .link-outline:hover { border-color: var(--primary); background: rgba(99,91,255,0.08); }
+
+  /* Footer */
+  .footer { text-align: center; padding: 2rem 0; color: var(--text-3); font-size: 0.75rem; border-top: 1px solid var(--border); margin-top: 3rem; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .arch-grid { grid-template-columns: 1fr; }
+    .cost-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>YouTube Video Automation Pipeline</h1>
+    <p>토픽 하나로 완성된 YouTube 영상을 자동 생성하고 업로드하는 파이프라인</p>
+    <div class="hero-badges">
+      <span class="badge badge-purple">Temporal + FastAPI</span>
+      <span class="badge badge-green">React Dashboard</span>
+      <span class="badge badge-blue">RTX 4070 + Cloud Hybrid</span>
+      <span class="badge badge-amber">Multi-Channel</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value">5</div>
+      <div class="stat-label">Phases Complete</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">255</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">20+</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">7</div>
+      <div class="stat-label">Frontend Pages</div>
+    </div>
+  </div>
+
+  <!-- Links -->
+  <div class="links">
+    <a href="./app/" class="link-btn link-primary">Dashboard App (Demo)</a>
+    <a href="https://github.com/geben147-create/full_vid-auto_4.2.26_opus" class="link-btn link-outline">GitHub Repository</a>
+  </div>
+
+  <!-- Phase Timeline -->
+  <div class="section">
+    <div class="section-title"><span>&#128640;</span> Development Phases</div>
+    <div class="timeline">
+
+      <div class="phase phase-done">
+        <div class="phase-header">
+          <span class="phase-name">Phase 1 — Foundation &amp; Infrastructure</span>
+          <span class="phase-status status-done">Complete</span>
+        </div>
+        <div class="phase-desc">Temporal + FastAPI + SQLite + Docker Compose 기반 인프라 구축</div>
+        <div class="phase-tasks">
+          <span class="task-chip task-done">Docker Compose (Temporal + PostgreSQL)</span>
+          <span class="task-chip task-done">FastAPI skeleton</span>
+          <span class="task-chip task-done">SQLModel ORM + Alembic migrations</span>
+          <span class="task-chip task-done">Temporal Worker (GPU/CPU/API queues)</span>
+          <span class="task-chip task-done">Health endpoint</span>
+          <span class="task-chip task-done">Channel YAML config loader</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+      </div>
+
+      <div class="phase phase-done">
+        <div class="phase-header">
+          <span class="phase-name">Phase 2 — Core Pipeline Activities</span>
+          <span class="phase-status status-done">Complete</span>
+        </div>
+        <div class="phase-desc">스크립트 생성 → 이미지 → TTS → 비디오 → 썸네일 → 조립 전체 Activity 구현</div>
+        <div class="phase-tasks">
+          <span class="task-chip task-done">Script Gen (Ollama/Qwen3)</span>
+          <span class="task-chip task-done">Image Gen (ComfyUI/SDXL + fal.ai fallback)</span>
+          <span class="task-chip task-done">TTS (CosyVoice2/Kokoro)</span>
+          <span class="task-chip task-done">Video Gen (fal.ai WAN + Ken Burns fallback)</span>
+          <span class="task-chip task-done">Thumbnail (Pillow)</span>
+          <span class="task-chip task-done">Video Assembly (FFmpeg + NVENC)</span>
+          <span class="task-chip task-done">ContentPipelineWorkflow (Temporal)</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+      </div>
+
+      <div class="phase phase-done">
+        <div class="phase-header">
+          <span class="phase-name">Phase 3 — Quality Gate &amp; Cost Tracking</span>
+          <span class="phase-status status-done">Complete</span>
+        </div>
+        <div class="phase-desc">품질 게이트 (인간 승인/거부), 비용 추적, Google Sheets 연동</div>
+        <div class="phase-tasks">
+          <span class="task-chip task-done">Quality Gate Signal (approve/reject)</span>
+          <span class="task-chip task-done">CostTracker service</span>
+          <span class="task-chip task-done">Google Sheets sync</span>
+          <span class="task-chip task-done">Pipeline cost breakdown API</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+      </div>
+
+      <div class="phase phase-done">
+        <div class="phase-header">
+          <span class="phase-name">Phase 4 — Human Upload &amp; Dashboard v1</span>
+          <span class="phase-status status-done">Complete</span>
+        </div>
+        <div class="phase-desc">수동 YouTube 업로드를 위한 다운로드 엔드포인트 + 초기 대시보드</div>
+        <div class="phase-tasks">
+          <span class="task-chip task-done">Video download endpoint</span>
+          <span class="task-chip task-done">Thumbnail download endpoint</span>
+          <span class="task-chip task-done">Dashboard runs/costs API</span>
+          <span class="task-chip task-done">Vanilla JS dashboard (legacy)</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+      </div>
+
+      <div class="phase phase-done">
+        <div class="phase-header">
+          <span class="phase-name">Phase 5 — React Frontend &amp; Full API</span>
+          <span class="phase-status status-done">Complete</span>
+        </div>
+        <div class="phase-desc">React + Vite + Tailwind 대시보드 7개 페이지 + 백엔드 API 20개 엔드포인트</div>
+        <div class="phase-tasks">
+          <span class="task-chip task-done">Dashboard page (stats + charts)</span>
+          <span class="task-chip task-done">Pipelines page (table + filters)</span>
+          <span class="task-chip task-done">Pipeline Detail (progress + preview + artifacts)</span>
+          <span class="task-chip task-done">Trigger page (topic + channel select)</span>
+          <span class="task-chip task-done">Costs page (daily + service breakdown)</span>
+          <span class="task-chip task-done">Channels page (config + stats)</span>
+          <span class="task-chip task-done">Settings page (health + workers + alerts)</span>
+          <span class="task-chip task-done">DB write activity (auto pipeline_runs)</span>
+          <span class="task-chip task-done">E2E bug fixes (#1-#7)</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+      </div>
+
+      <div class="phase phase-current">
+        <div class="phase-header">
+          <span class="phase-name">Phase 6 — Production Pipeline Execution</span>
+          <span class="phase-status status-progress">In Progress</span>
+        </div>
+        <div class="phase-desc">실제 영상 생성 E2E 실행 — ComfyUI/fal.ai 연동, TTS 통합, 10초 영상 자동 제작</div>
+        <div class="phase-tasks">
+          <span class="task-chip">ComfyUI SDXL 이미지 생성 연결</span>
+          <span class="task-chip">fal.ai WAN 2.2 비디오 생성</span>
+          <span class="task-chip">CosyVoice2/Kokoro TTS 연결</span>
+          <span class="task-chip">FFmpeg NVENC 비디오 조립</span>
+          <span class="task-chip">10초 영상 E2E 생성 테스트</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-amber" style="width:20%"></div></div>
+      </div>
+
+      <div class="phase phase-todo">
+        <div class="phase-header">
+          <span class="phase-name">Phase 7 — YouTube Auto Upload</span>
+          <span class="phase-status status-todo">Planned</span>
+        </div>
+        <div class="phase-desc">YouTube Data API v3 OAuth2 + videos.insert 자동 업로드</div>
+        <div class="phase-tasks">
+          <span class="task-chip">YouTube OAuth2 flow</span>
+          <span class="task-chip">videos.insert activity</span>
+          <span class="task-chip">Quota management (6 uploads/day)</span>
+          <span class="task-chip">Multi-project key rotation</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-amber" style="width:0%"></div></div>
+      </div>
+
+      <div class="phase phase-todo">
+        <div class="phase-header">
+          <span class="phase-name">Phase 8 — Multi-Channel &amp; Scheduling</span>
+          <span class="phase-status status-todo">Planned</span>
+        </div>
+        <div class="phase-desc">다채널 배치 생성, 스케줄링, 채널별 스타일 분기</div>
+        <div class="phase-tasks">
+          <span class="task-chip">Batch pipeline trigger</span>
+          <span class="task-chip">Cron scheduling (daily auto-generation)</span>
+          <span class="task-chip">Channel-specific prompt templates</span>
+          <span class="task-chip">5+ channel parallel execution</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill fill-amber" style="width:0%"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section">
+    <div class="section-title"><span>&#128736;</span> Architecture</div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <h4>Backend (Python)</h4>
+        <ul>
+          <li class="li-green">FastAPI 0.115+ (REST API)</li>
+          <li class="li-green">Temporal SDK (Workflow orchestration)</li>
+          <li class="li-green">SQLModel + SQLite (Database)</li>
+          <li class="li-green">Alembic (Migrations)</li>
+          <li class="li-green">Pydantic 2.x (Validation)</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <h4>Frontend (React)</h4>
+        <ul>
+          <li class="li-green">React 19 + Vite 8</li>
+          <li class="li-green">Tailwind CSS 4</li>
+          <li class="li-green">React Query (Data fetching)</li>
+          <li class="li-green">Recharts (Charts)</li>
+          <li class="li-green">React Router (HashRouter)</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <h4>AI / Generation</h4>
+        <ul>
+          <li class="li-green">Qwen3-14B via Ollama (Script)</li>
+          <li class="li-amber">ComfyUI + SDXL (Image)</li>
+          <li class="li-amber">CosyVoice2 / Kokoro (TTS)</li>
+          <li class="li-amber">fal.ai WAN 2.2 (Video)</li>
+          <li class="li-green">FFmpeg 7.x + NVENC (Assembly)</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <h4>Infrastructure</h4>
+        <ul>
+          <li class="li-green">Docker Compose</li>
+          <li class="li-green">Temporal Server + UI</li>
+          <li class="li-green">PostgreSQL (Temporal backend)</li>
+          <li class="li-green">Redis 7.x (Cache)</li>
+          <li class="li-blue">RTX 4070 8GB (Local GPU)</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <h4>Worker Pools</h4>
+        <ul>
+          <li class="li-blue">GPU Worker (max=1) — ComfyUI, Ollama, TTS</li>
+          <li class="li-blue">CPU Worker (max=4) — FFmpeg, file ops</li>
+          <li class="li-blue">API Worker (max=8) — fal.ai, YouTube, Sheets</li>
+        </ul>
+      </div>
+      <div class="arch-card">
+        <h4>External APIs</h4>
+        <ul>
+          <li class="li-amber">fal.ai (Video + Image cloud)</li>
+          <li class="li-red">YouTube Data API v3 (Upload)</li>
+          <li class="li-amber">Google Sheets API v4 (Data input)</li>
+          <li class="li-amber">Gemini 2.5 Pro (Fact-check)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature Table -->
+  <div class="section">
+    <div class="section-title"><span>&#128204;</span> Feature Status (All 20+ Endpoints)</div>
+    <table class="feature-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Endpoint</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Health Check</td><td>GET /health</td><td><span class="dot dot-green"></span>Live</td><td>Temporal + SQLite + disk check</td></tr>
+        <tr><td>Trigger Pipeline</td><td>POST /api/pipeline/trigger</td><td><span class="dot dot-green"></span>Live</td><td>Auto DB insert on trigger</td></tr>
+        <tr><td>Pipeline Status</td><td>GET /api/pipeline/status/{id}</td><td><span class="dot dot-green"></span>Live</td><td>Maps Temporal status + cost</td></tr>
+        <tr><td>Pipeline Cost</td><td>GET /api/pipeline/cost/{id}</td><td><span class="dot dot-green"></span>Live</td><td>Per-step breakdown</td></tr>
+        <tr><td>Approve/Reject</td><td>POST /api/pipeline/{id}/approve</td><td><span class="dot dot-green"></span>Live</td><td>Quality gate signal</td></tr>
+        <tr><td>Cancel Pipeline</td><td>DELETE /api/pipeline/{id}</td><td><span class="dot dot-green"></span>Live</td><td>Temporal cancellation</td></tr>
+        <tr><td>Download Video</td><td>GET /api/pipeline/{id}/download</td><td><span class="dot dot-green"></span>Live</td><td>MP4 attachment</td></tr>
+        <tr><td>Download Thumbnail</td><td>GET /api/pipeline/{id}/thumbnail</td><td><span class="dot dot-green"></span>Live</td><td>JPEG attachment</td></tr>
+        <tr><td>Preview Video</td><td>GET /api/pipeline/{id}/video</td><td><span class="dot dot-green"></span>Live</td><td>Streaming MP4</td></tr>
+        <tr><td>Pipeline Artifacts</td><td>GET /api/pipeline/{id}/artifacts</td><td><span class="dot dot-green"></span>Live</td><td>Script, scenes, audio, clips</td></tr>
+        <tr><td>Scene Image</td><td>GET /api/pipeline/{id}/scene/{file}</td><td><span class="dot dot-green"></span>Live</td><td>Individual scene serve</td></tr>
+        <tr><td>Dashboard Runs</td><td>GET /api/dashboard/runs</td><td><span class="dot dot-green"></span>Live</td><td>Channel + status filter, pagination</td></tr>
+        <tr><td>Dashboard Costs</td><td>GET /api/dashboard/costs</td><td><span class="dot dot-green"></span>Live</td><td>By channel aggregation</td></tr>
+        <tr><td>Daily Cost Chart</td><td>GET /api/dashboard/costs/daily</td><td><span class="dot dot-green"></span>Live</td><td>Time series for chart</td></tr>
+        <tr><td>Cost by Service</td><td>GET /api/dashboard/costs/by-service</td><td><span class="dot dot-green"></span>Live</td><td>Pie chart data</td></tr>
+        <tr><td>List Channels</td><td>GET /api/channels</td><td><span class="dot dot-green"></span>Live</td><td>YAML + DB stats merged</td></tr>
+        <tr><td>Channel Detail</td><td>GET /api/channels/{id}</td><td><span class="dot dot-green"></span>Live</td><td>Success rate, avg cost</td></tr>
+        <tr><td>Worker Pools</td><td>GET /api/system/workers</td><td><span class="dot dot-green"></span>Live</td><td>3 pool configs</td></tr>
+        <tr><td>System Info</td><td>GET /api/system/info</td><td><span class="dot dot-amber"></span>Slow</td><td>Probes FFmpeg/Ollama/ComfyUI</td></tr>
+        <tr><td>Alerts</td><td>GET /api/system/alerts</td><td><span class="dot dot-green"></span>Live</td><td>alerts.jsonl reader</td></tr>
+        <tr><td>Sheets Sync</td><td>POST /api/sync/sheets</td><td><span class="dot dot-amber"></span>Needs Key</td><td>Google Sheets credentials required</td></tr>
+        <tr><td>YouTube Upload</td><td>—</td><td><span class="dot dot-red"></span>Phase 7</td><td>Not yet implemented</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cost Estimate -->
+  <div class="section">
+    <div class="section-title"><span>&#128176;</span> Cost Estimate (Per Video)</div>
+    <div class="cost-grid">
+      <div class="cost-card">
+        <h4>Local (RTX 4070 — $0)</h4>
+        <div class="cost-row"><span>Script (Qwen3-14B)</span><span>$0.00</span></div>
+        <div class="cost-row"><span>Images x10 (SDXL)</span><span>$0.00</span></div>
+        <div class="cost-row"><span>TTS (Kokoro/CosyVoice2)</span><span>$0.00</span></div>
+        <div class="cost-row"><span>FFmpeg Assembly</span><span>$0.00</span></div>
+        <div class="cost-row"><span>Thumbnail (Pillow)</span><span>$0.00</span></div>
+        <div class="cost-row"><span>Local Total</span><span>$0.00</span></div>
+      </div>
+      <div class="cost-card">
+        <h4>Cloud APIs (fal.ai)</h4>
+        <div class="cost-row"><span>Video clips x5 (WAN 2.2, 5s each)</span><span>~$1.25</span></div>
+        <div class="cost-row"><span>Overflow images (FLUX)</span><span>~$0.25</span></div>
+        <div class="cost-row"><span>YouTube upload</span><span>$0.00</span></div>
+        <div class="cost-row"><span>Cloud Total</span><span>~$1.50</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Flow -->
+  <div class="section">
+    <div class="section-title"><span>&#9889;</span> Pipeline Flow</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;text-align:center;font-size:0.85rem;">
+      <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0.5rem;">
+        <span class="badge badge-purple">Topic Input</span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-blue">Script Gen<br><small>Qwen3-14B</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-blue">Image Gen<br><small>SDXL / fal.ai</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-blue">TTS<br><small>Kokoro</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-amber">Video Gen<br><small>WAN 2.2</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-green">Thumbnail<br><small>Pillow</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-green">Assembly<br><small>FFmpeg</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-amber">Quality Gate<br><small>Human Review</small></span>
+        <span style="color:var(--text-3)">&#8594;</span>
+        <span class="badge badge-green">Ready to Upload</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Video Automation Pipeline &mdash; Built with Temporal + FastAPI + React &mdash; Last updated: 2026-04-03<br>
+    Generated with Claude Code (Opus 4.6)
+  </div>
+</div>
+</body>
+</html>
