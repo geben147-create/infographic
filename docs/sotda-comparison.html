@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOTDA Scoring — Metric Display Strategy</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.6; }
+
+  /* ── Nav Tabs ── */
+  .tab-nav { display: flex; gap: 0; background: #fff; border-bottom: 2px solid #6c5ce7; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .tab-btn { padding: 14px 28px; font-size: 14px; font-weight: 600; border: none; background: none; cursor: pointer; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab-btn.active { color: #6c5ce7; border-bottom-color: #6c5ce7; background: #f8f7ff; }
+  .tab-btn:hover:not(.active) { color: #444; background: #f5f5f5; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── Page 1 styles (CDE Formulas) ── */
+  #p1 { padding: 32px; }
+  #p1 h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 8px; }
+  #p1 h2 { font-size: 20px; font-weight: 700; margin: 32px 0 16px; border-bottom: 2px solid #6c5ce7; padding-bottom: 8px; }
+  #p1 h3 { font-size: 16px; font-weight: 700; margin: 24px 0 12px; color: #6c5ce7; }
+  .subtitle { color: #666; font-size: 14px; margin-bottom: 32px; }
+  .section { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  th { background: #f0f0f5; padding: 10px 12px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f0f0f5; }
+  tr:hover td { background: #fafafe; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #d4edda; color: #155724; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red { background: #f8d7da; color: #721c24; }
+  .badge-blue { background: #d1ecf1; color: #0c5460; }
+  .badge-purple { background: #e8daef; color: #6c3483; }
+  .formula-box { background: #f8f8fc; border: 1px solid #e8e8f0; border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin: 12px 0; white-space: pre-wrap; }
+  .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .comparison-card { border: 1px solid #e8e8f0; border-radius: 12px; padding: 16px; }
+  .comparison-card.recommended { border-color: #6c5ce7; background: #f8f7ff; }
+  .comparison-card h4 { font-size: 14px; margin-bottom: 8px; }
+  .star { color: #f39c12; }
+  .check { color: #27ae60; }
+  .cross { color: #e74c3c; }
+  .metric-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+  .metric-label { width: 180px; font-size: 12px; font-weight: 600; color: #555; }
+  .metric-raw { width: 100px; font-family: monospace; font-size: 12px; color: #999; text-decoration: line-through; }
+  .metric-display { font-size: 14px; font-weight: 700; }
+  .bar { height: 8px; border-radius: 4px; background: #e9ecef; overflow: hidden; flex: 1; max-width: 200px; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-green .bar-fill { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+  .bar-yellow .bar-fill { background: linear-gradient(90deg, #f39c12, #f1c40f); }
+  .bar-red .bar-fill { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+  .bar-blue .bar-fill { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+  .layer-diagram { display: flex; gap: 8px; align-items: stretch; margin: 16px 0; }
+  .layer { flex: 1; border-radius: 12px; padding: 12px; text-align: center; font-size: 12px; }
+  .layer-1 { background: #d4edda; border: 2px solid #27ae60; }
+  .layer-2 { background: #d1ecf1; border: 2px solid #17a2b8; }
+  .layer-3 { background: #fff3cd; border: 2px solid #ffc107; }
+  .layer-4 { background: #f8f8fc; border: 2px solid #ccc; }
+  .winner { background: #fffbea; border: 2px solid #f39c12; border-radius: 12px; padding: 16px; margin: 16px 0; }
+  .toc { background: #f8f7ff; border-radius: 12px; padding: 16px 24px; margin-bottom: 24px; }
+  .toc a { color: #6c5ce7; text-decoration: none; font-size: 14px; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li { margin: 4px 0; }
+
+  /* ── Page 2 styles (Interactive) ── */
+  #p2 { padding: 24px 32px; }
+  #p2 .wrap { padding: 1rem 0; }
+  #p2 .raw-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  #p2 .raw-pill { background: #f5f5f5; border: 0.5px solid #ddd; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #666; }
+  #p2 .raw-pill span { font-family: monospace; color: #1a1a2e; font-weight: 500; }
+  #p2 .section-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .75rem; font-weight: 500; }
+  #p2 .strategy-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  #p2 .s-card { background: #f5f5f5; border: 0.5px solid #ddd; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color .15s; }
+  #p2 .s-card:hover { border-color: #aaa; }
+  #p2 .s-card.active { background: #fff; border: 1.5px solid #6c5ce7; }
+  #p2 .s-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 500; margin-bottom: 6px; }
+  #p2 .s-badge.bad { background: #FCEBEB; color: #A32D2D; }
+  #p2 .s-badge.ok { background: #F1EFE8; color: #5F5E5A; }
+  #p2 .s-badge.good { background: #EAF3DE; color: #3B6D11; }
+  #p2 .s-badge.best { background: #E1F5EE; color: #0F6E56; }
+  #p2 .s-title { font-size: 11px; font-weight: 500; color: #1a1a2e; margin-bottom: 4px; }
+  #p2 .s-sub { font-size: 10px; color: #999; }
+  #p2 .detail-panel { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; min-height: 120px; }
+  #p2 .metric-row2 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: .5rem; }
+  #p2 .m-cell { background: #f5f5f5; border-radius: 8px; padding: 8px; text-align: center; }
+  #p2 .m-label { font-size: 10px; color: #999; margin-bottom: 4px; }
+  #p2 .m-val { font-size: 12px; font-weight: 500; color: #1a1a2e; font-family: monospace; }
+  #p2 .m-val.good { color: #3B6D11; }
+  #p2 .m-val.warn { color: #854F0B; }
+  #p2 .m-val.bad { color: #A32D2D; }
+  #p2 .tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  #p2 .tag { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 500; }
+  #p2 .tag.pro { background: #EAF3DE; color: #3B6D11; }
+  #p2 .tag.con { background: #FCEBEB; color: #A32D2D; }
+  #p2 .layer-box { border: 0.5px solid #ddd; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  #p2 .layer-head { background: #f5f5f5; padding: 8px 12px; font-size: 11px; font-weight: 500; color: #666; display: flex; align-items: center; gap: 8px; }
+  #p2 .layer-num { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 0.5px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #1a1a2e; font-weight: 500; flex-shrink: 0; }
+  #p2 .layer-body { padding: 10px 12px; font-size: 12px; }
+  #p2 .layer-demo { background: #f5f5f5; border-radius: 8px; padding: 8px 12px; font-family: monospace; font-size: 12px; color: #1a1a2e; }
+  #p2 .score-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  #p2 .score-dot.g { background: #639922; }
+  #p2 .score-dot.y { background: #BA7517; }
+  #p2 .score-dot.r { background: #E24B4A; }
+  #p2 .research-bar { margin-bottom: 6px; }
+  #p2 .rb-label { font-size: 11px; color: #666; margin-bottom: 3px; display: flex; justify-content: space-between; }
+  #p2 .rb-track { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  #p2 .rb-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+  #p2 .detail-title { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 8px; }
+  #p2 .detail-desc { font-size: 12px; color: #666; margin-bottom: 12px; line-height: 1.6; }
+  #p2 h2 { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+  #p2 .p2-subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('p1')">C/D/E 수식 비교</button>
+  <button class="tab-btn" onclick="switchTab('p2')">인터랙티브 전략 비교</button>
+</div>
+
+<!-- ========================= PAGE 1 ========================= -->
+<div id="p1" class="tab-pane active">
+
+<h1>SOTDA Scoring Formulas</h1>
+<p class="subtitle">C. Viewer Satisfaction / D. Trend Detection / E. Keyword Scoring — Display Strategy Comparison</p>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#overview">Overview: 4-Layer Display Strategy</a></li>
+    <li><a href="#section-c">C. Viewer Satisfaction (3 Steps)</a></li>
+    <li><a href="#section-d">D. Trend Detection (4 Steps)</a></li>
+    <li><a href="#section-e">E. Keyword Scoring (3 Steps)</a></li>
+    <li><a href="#comparison">Strategy Comparison Matrix</a></li>
+    <li><a href="#formulas">Final Formulas (Display-Optimized)</a></li>
+  </ul>
+</div>
+
+<div class="section" id="overview">
+<h2>4-Layer Display Strategy</h2>
+<p>PubMed 연구: 색상+카테고리 = 84.3% 정확 판별, 숫자만 = 62.0%</p>
+<div class="layer-diagram">
+  <div class="layer layer-1"><strong>Layer 1</strong><br><span style="font-size:24px">Good</span><br>색상 + 등급<br><small>84.3% 이해도</small></div>
+  <div class="layer layer-2"><strong>Layer 2</strong><br><span style="font-size:24px">72/100</span><br>정규화 점수<br><small>0-100 스케일</small></div>
+  <div class="layer layer-3"><strong>Layer 3</strong><br><span style="font-size:24px">4.2%</span><br>적응형 포맷<br><small>타입별 최적화</small></div>
+  <div class="layer layer-4"><strong>Layer 4</strong><br><span style="font-size:12px; font-family:monospace">0.042000</span><br>Raw 데이터<br><small>디버그 전용</small></div>
+</div>
+</div>
+
+<div class="section" id="section-c">
+<h2>C. Viewer Satisfaction (3 Steps)</h2>
+<h3>C-1: like_ratio + avg_view_duration_pct</h3>
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>Raw Range</th><th>Display Format</th><th>Example</th></tr>
+  <tr>
+    <td><strong>like_ratio</strong></td><td><code>likes / views</code></td><td>0.00 ~ 0.15</td>
+    <td><span class="badge badge-green">X.X%</span></td>
+    <td><span class="metric-display" style="color:#27ae60">4.2%</span> <span style="color:#999;font-size:11px">(raw: 0.042)</span></td>
+  </tr>
+  <tr>
+    <td><strong>avg_view_pct</strong></td><td><code>avg_duration / video_length * 100</code></td><td>0 ~ 100+%</td>
+    <td><span class="badge badge-blue">XX%</span></td>
+    <td><span class="metric-display" style="color:#2980b9">47%</span></td>
+  </tr>
+</table>
+<div class="formula-box">
+# Normalization (fixed bounds, not per-dataset)
+like_ratio_norm = clamp(like_ratio / 0.10 * 100, 0, 100)
+  # 0% = 0점, 10% = 100점 (10% 초과는 매우 드묾)
+
+avg_view_pct_norm = clamp(avg_view_percentage, 0, 100)
+  # 이미 0-100 스케일</div>
+
+<h3>C-2: comment_sentiment + sub_conversion</h3>
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>Raw Range</th><th>Display Format</th><th>Example</th></tr>
+  <tr>
+    <td><strong>comment_sentiment</strong></td>
+    <td><code>mean(score_per_comment)</code><br><small>NLP: tabularisai multilingual</small></td>
+    <td>-1.0 ~ +1.0</td>
+    <td><span class="badge badge-purple">Label + Bar</span></td>
+    <td><span class="metric-display" style="color:#6c5ce7">Positive</span> <span style="color:#999">(71/100)</span></td>
+  </tr>
+  <tr>
+    <td><strong>sub_conversion</strong></td>
+    <td><code>subs_gained / views</code></td>
+    <td>0.0001 ~ 0.05</td>
+    <td><span class="badge badge-green">X per 1K views</span></td>
+    <td><span class="metric-display" style="color:#27ae60">8.3 per 1K</span> <span style="color:#999">(raw: 0.0083)</span></td>
+  </tr>
+</table>
+<div class="formula-box">
+# Sentiment: -1~+1 -> 0~100
+sentiment_norm = clamp((comment_sentiment + 1) / 2 * 100, 0, 100)
+  # -1.0 = 0점, 0.0 = 50점, +1.0 = 100점
+
+# Sub Conversion: 0~0.02 -> 0~100
+sub_conv_norm = clamp(sub_conversion / 0.02 * 100, 0, 100)
+  # 0% = 0점, 2% = 100점</div>
+
+<h3>C-3: satisfaction_score (Composite)</h3>
+<div class="winner">
+  <strong>Best Formula (연구 기반 가중치):</strong>
+  <div class="formula-box">satisfaction_score = 0.40 * avg_view_pct_norm     # 리텐션 (YouTube 최우선)
+                   + 0.25 * like_ratio_norm       # 만족 신호
+                   + 0.20 * sentiment_norm         # 정성적 깊이
+                   + 0.15 * sub_conv_norm          # 최강 커밋먼트
+
+Output: 0-100 (정수 표시)</div>
+</div>
+<table>
+  <tr><th>Score</th><th>Label</th><th>Color</th><th>Description</th></tr>
+  <tr><td>80-100</td><td><span class="badge badge-green">Excellent</span></td><td style="background:#27ae60;color:#fff;text-align:center">Green</td><td>시청자 강력 만족</td></tr>
+  <tr><td>60-79</td><td><span class="badge badge-green">Good</span></td><td style="background:#2ecc71;color:#fff;text-align:center">Light Green</td><td>건강한 성과</td></tr>
+  <tr><td>40-59</td><td><span class="badge badge-yellow">Average</span></td><td style="background:#f1c40f;text-align:center">Yellow</td><td>개선 여지</td></tr>
+  <tr><td>20-39</td><td><span class="badge badge-red">Below Avg</span></td><td style="background:#e67e22;color:#fff;text-align:center">Orange</td><td>관심 필요</td></tr>
+  <tr><td>0-19</td><td><span class="badge badge-red">Poor</span></td><td style="background:#e74c3c;color:#fff;text-align:center">Red</td><td>즉각 조치</td></tr>
+</table>
+
+<p style="margin-top:12px"><strong>Before vs After:</strong></p>
+<div class="comparison-grid">
+  <div class="comparison-card">
+    <h4><span class="cross">X</span> Before (Raw)</h4>
+    <div class="metric-row"><span class="metric-label">like_ratio</span><span class="metric-raw">0.042000</span></div>
+    <div class="metric-row"><span class="metric-label">avg_view_pct</span><span class="metric-raw">47.300000</span></div>
+    <div class="metric-row"><span class="metric-label">sentiment</span><span class="metric-raw">0.420000</span></div>
+    <div class="metric-row"><span class="metric-label">sub_conversion</span><span class="metric-raw">0.008300</span></div>
+    <div class="metric-row"><span class="metric-label">satisfaction</span><span class="metric-raw">???</span></div>
+  </div>
+  <div class="comparison-card recommended">
+    <h4><span class="check">OK</span> After (4-Layer)</h4>
+    <div class="metric-row"><span class="metric-label">like_ratio</span><span class="metric-display" style="color:#27ae60">4.2%</span><div class="bar bar-green"><div class="bar-fill" style="width:42%"></div></div></div>
+    <div class="metric-row"><span class="metric-label">avg_view_pct</span><span class="metric-display" style="color:#2980b9">47%</span><div class="bar bar-yellow"><div class="bar-fill" style="width:47%"></div></div></div>
+    <div class="metric-row"><span class="metric-label">sentiment</span><span class="metric-display" style="color:#6c5ce7">Positive</span><div class="bar bar-blue"><div class="bar-fill" style="width:71%"></div></div></div>
+    <div class="metric-row"><span class="metric-label">sub_conversion</span><span class="metric-display" style="color:#27ae60">8.3/1K</span><div class="bar bar-green"><div class="bar-fill" style="width:42%"></div></div></div>
+    <div class="metric-row"><span class="metric-label"><strong>satisfaction</strong></span><span class="metric-display badge badge-yellow" style="font-size:18px">56 Average</span></div>
+  </div>
+</div>
+</div>
+
+<div class="section" id="section-d">
+<h2>D. Trend Detection (4 Steps)</h2>
+<h3>D-1: keyword_trends + topic_gaps</h3>
+<div class="formula-box">
+# Topic Gap Score
+gap_score = (demand - supply) / demand
+
+Where:
+  demand = norm(search_volume) * (1 + growth_rate_30d)
+  supply = norm(video_count) * avg_optimization_strength
+
+Output: -1.0 ~ +1.0
+Display: 0-100 scale → "Gap: 72 (High Opportunity)"</div>
+
+<h3>D-2: keyword_surge (Van Brakel Z-Score)</h3>
+<div class="formula-box">
+# Smoothed Z-Score Spike Detection
+rolling_mean = mean(x[i-lag : i-1])    # lag = 14~30 days
+rolling_std  = std(x[i-lag : i-1])
+z = (x[i] - rolling_mean) / rolling_std
+
+if |z| > threshold:                     # threshold = 2.0~3.5
+  signal = +1 (surge) or -1 (drop)
+  filtered[i] = influence * x[i] + (1 - influence) * filtered[i-1]</div>
+
+<h3>D-3: outlier_detect (Modified Z-Score / MAD)</h3>
+<div class="comparison-grid">
+  <div class="comparison-card">
+    <h4>Standard Z-Score <span class="cross">X</span></h4>
+    <p><code>z = (x - mean) / std</code></p>
+    <p style="color:#e74c3c;font-size:12px">Problem: mean/std 이상치에 왜곡됨. 유튜브 데이터처럼 편향된 분포에서 부정확.</p>
+  </div>
+  <div class="comparison-card recommended">
+    <h4>Modified Z-Score (MAD) <span class="star">Best</span></h4>
+    <p><code>MAD = median(|xi - median(x)|)</code></p>
+    <p><code>mz = 0.6745 * (xi - median) / MAD</code></p>
+    <p style="color:#27ae60;font-size:12px">median 기반이라 이상치에 강건. 비대칭 분포에 최적.</p>
+  </div>
+</div>
+<table>
+  <tr><th>Modified Z</th><th>Label</th><th>Color</th><th>Action</th></tr>
+  <tr><td>2.0 ~ 3.0</td><td><span class="badge badge-blue">Watch</span></td><td style="background:#d1ecf1;text-align:center">Blue</td><td>모니터링</td></tr>
+  <tr><td>3.0 ~ 3.5</td><td><span class="badge badge-yellow">Trending</span></td><td style="background:#fff3cd;text-align:center">Yellow</td><td>인앱 알림</td></tr>
+  <tr><td>3.5 ~ 5.0</td><td><span class="badge badge-red">Surge</span></td><td style="background:#f8d7da;text-align:center">Orange</td><td>푸시 알림</td></tr>
+  <tr><td>> 5.0</td><td><span class="badge badge-red">Viral</span></td><td style="background:#e74c3c;color:#fff;text-align:center">Red</td><td>즉시 대응</td></tr>
+</table>
+
+<h3>D-4: trend_alert Display</h3>
+<div class="formula-box">
+# Alert card example:
++--------------------------------------------------+
+| [Orange] SURGE  "AI 투자" z=4.2  +180% (7d)     |
+|   Gap: 72/100   Vol: 12K/mo   Updated: 2h ago   |
+|   [Create Content]  [Dismiss]                     |
++--------------------------------------------------+</div>
+</div>
+
+<div class="section" id="section-e">
+<h2>E. Keyword Scoring (3 Steps)</h2>
+<h3>E-1: search_volume + competition</h3>
+<table>
+  <tr><th>Data</th><th>Source</th><th>Cost</th><th>Raw Range</th><th>Display</th></tr>
+  <tr><td>Search Volume</td><td>KeywordTool.io API / Google Trends</td><td>$69/mo or Free</td><td>0 ~ 1,000,000+</td><td><strong>12.4K/mo</strong> (K/M 축약)</td></tr>
+  <tr><td>Competition</td><td>YouTube API v3 (search.list → top10 분석)</td><td>Free (10K quota)</td><td>0 ~ 100</td><td><span class="badge badge-yellow">Medium (34)</span></td></tr>
+</table>
+
+<h3>E-2: 5-Indicator Opportunity Score</h3>
+<div class="winner">
+  <strong>Best Formula:</strong>
+  <div class="formula-box">Opportunity_Score =
+    0.25 * norm(search_volume)              # 수요
+  + 0.25 * (100 - norm(competition))        # 공급 (역비례!)
+  + 0.20 * norm(trend_momentum)             # 성장성
+  + 0.15 * norm(monetization_potential)      # 수익성
+  + 0.15 * norm(content_gap)                # 기회도
+
+Output: 0-100 (정수)</div>
+</div>
+<div class="formula-box">
+# Revenue Prediction
+monthly_revenue = (search_volume / 1000) * niche_RPM * rank_probability
+
+Where:
+  rank_probability = max(0, 1 - competition/100)
+  niche_RPM = lookup_table[niche]  # Finance=$15, Tech=$8, Gaming=$4
+
+Display: "$420/mo" (통화형, 정수)</div>
+<table>
+  <tr><th>Opp Score</th><th>Label</th><th>Color</th><th>Action</th></tr>
+  <tr><td>80-100</td><td><span class="badge badge-green">Excellent</span></td><td style="background:#27ae60;color:#fff;text-align:center">Green</td><td>즉시 타겟</td></tr>
+  <tr><td>60-79</td><td><span class="badge badge-green">Good</span></td><td style="background:#84cc16;text-align:center">Light Green</td><td>강력 후보</td></tr>
+  <tr><td>40-59</td><td><span class="badge badge-yellow">Moderate</span></td><td style="background:#eab308;text-align:center">Yellow</td><td>추가 분석</td></tr>
+  <tr><td>20-39</td><td><span class="badge badge-red">Weak</span></td><td style="background:#f97316;color:#fff;text-align:center">Orange</td><td>낮은 우선</td></tr>
+  <tr><td>0-19</td><td><span class="badge badge-red">Poor</span></td><td style="background:#ef4444;color:#fff;text-align:center">Red</td><td>패스</td></tr>
+</table>
+
+<h3>E-3: Dashboard Display Example</h3>
+<div class="formula-box" style="background:#f0f7ff">
+[AI 투자]   [Opp: 73 ████████░░ Good]
+  Vol: 12.4K/mo  |  Comp: 34 Medium  |  Trend: +18%  |  RPM: $8.20  |  Gap: 2.1x
+  Est. Revenue: $420/mo  |  Top Videos Avg Views: 45K</div>
+</div>
+
+<div class="section" id="comparison">
+<h2>Strategy Comparison Matrix</h2>
+<p>모든 C/D/E 메트릭에 적용한 8가지 전략 종합 비교</p>
+<table>
+  <tr><th>Strategy</th><th>User Comprehension</th><th>Precision Loss</th><th>Cross-Metric Compare</th><th>Outlier Handling</th><th>Implementation</th><th>Verdict</th></tr>
+  <tr><td>Raw Values</td><td style="color:#e74c3c">62% (Low)</td><td style="color:#27ae60">None</td><td style="color:#e74c3c">Impossible</td><td style="color:#e74c3c">Poor</td><td style="color:#27ae60">Zero effort</td><td><span class="badge badge-red">X</span></td></tr>
+  <tr><td>0-100 Min-Max</td><td style="color:#f39c12">Medium</td><td style="color:#f39c12">Moderate</td><td style="color:#27ae60">Good</td><td style="color:#e74c3c">Sensitive</td><td style="color:#27ae60">Easy</td><td><span class="badge badge-yellow">OK</span></td></tr>
+  <tr><td>Percentile</td><td style="color:#27ae60">High</td><td style="color:#e74c3c">High (extremes)</td><td style="color:#27ae60">Excellent</td><td style="color:#27ae60">Immune</td><td style="color:#f39c12">Need 50+ data</td><td><span class="badge badge-green">Good</span></td></tr>
+  <tr><td>Log + 0-100</td><td style="color:#f39c12">Medium</td><td style="color:#27ae60">Low</td><td style="color:#27ae60">Good</td><td style="color:#27ae60">Excellent</td><td style="color:#f39c12">Moderate</td><td><span class="badge badge-green">Good</span></td></tr>
+  <tr><td>Tier/Grade</td><td style="color:#27ae60">84.3% (Best)</td><td style="color:#e74c3c">Very High</td><td style="color:#27ae60">Excellent</td><td style="color:#27ae60">Good</td><td style="color:#27ae60">Easy</td><td><span class="badge badge-green">Good</span></td></tr>
+  <tr><td>Sig Digits</td><td style="color:#f39c12">Medium</td><td style="color:#27ae60">Very Low</td><td style="color:#e74c3c">Poor</td><td style="color:#e74c3c">None</td><td style="color:#27ae60">Easy</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+  <tr><td>Adaptive Format</td><td style="color:#27ae60">High</td><td style="color:#27ae60">Very Low</td><td style="color:#f39c12">Per-type only</td><td style="color:#f39c12">Per-type</td><td style="color:#f39c12">Moderate</td><td><span class="badge badge-green">Essential</span></td></tr>
+  <tr style="background:#fffbea"><td><strong>4-Layer Hybrid</strong></td><td style="color:#27ae60"><strong>84.3% (Best)</strong></td><td style="color:#27ae60"><strong>Very Low</strong></td><td style="color:#27ae60"><strong>Excellent</strong></td><td style="color:#27ae60"><strong>Excellent</strong></td><td style="color:#f39c12">Complex</td><td><span class="badge badge-purple">WINNER</span></td></tr>
+</table>
+</div>
+
+<div class="section" id="formulas">
+<h2>Final Formulas Summary</h2>
+<h3>Display Rules (All Sections)</h3>
+<table>
+  <tr><th>Type</th><th>Rule</th><th>Example</th></tr>
+  <tr><td>Ratio (0~1)</td><td>Multiply by 100, show as X.X%</td><td>0.042 -> "4.2%"</td></tr>
+  <tr><td>Currency</td><td>$ prefix, 2-3 significant digits</td><td>0.0021 -> "$0.002"</td></tr>
+  <tr><td>Score (composite)</td><td>Integer 0-100 + color + label</td><td>56 -> "56 Average"</td></tr>
+  <tr><td>Sentiment (-1~+1)</td><td>Map to label + 0-100 bar</td><td>0.42 -> "Positive (71)"</td></tr>
+  <tr><td>Growth rate</td><td>+/- prefix, integer %</td><td>0.18 -> "+18%"</td></tr>
+  <tr><td>Count (large)</td><td>K/M abbreviation</td><td>12400 -> "12.4K"</td></tr>
+  <tr><td>Z-score</td><td>Map to tier label + color</td><td>4.2 -> "Surge (orange)"</td></tr>
+  <tr><td>Per-1K rate</td><td>"X per 1K" format</td><td>0.0083 -> "8.3 per 1K"</td></tr>
+</table>
+
+<h3>Normalization Bounds (Fixed, Not Per-Dataset)</h3>
+<table>
+  <tr><th>Metric</th><th>Min (=0)</th><th>Max (=100)</th><th>Rationale</th></tr>
+  <tr><td>like_ratio</td><td>0%</td><td>10%</td><td>>10% = top 5% videos</td></tr>
+  <tr><td>avg_view_pct</td><td>0%</td><td>100%</td><td>Already scaled</td></tr>
+  <tr><td>sentiment</td><td>-1.0</td><td>+1.0</td><td>Full NLP range</td></tr>
+  <tr><td>sub_conversion</td><td>0%</td><td>2%</td><td>>2% = exceptional</td></tr>
+  <tr><td>competition</td><td>0</td><td>100</td><td>Standard SEO scale</td></tr>
+  <tr><td>gap_score</td><td>-1.0</td><td>+1.0</td><td>Demand vs supply</td></tr>
+</table>
+</div>
+
+<div style="text-align:center; padding:24px; color:#999; font-size:12px">
+  SOTDA Scoring System — Research v3.0 | 2026-04-06 | Kar-auto-OnlyLogic
+</div>
+
+</div><!-- end #p1 -->
+
+<!-- ========================= PAGE 2 ========================= -->
+<div id="p2" class="tab-pane">
+<h2>Metric Display Strategy</h2>
+<p class="p2-subtitle">인터랙티브 비교 — 카드를 클릭해서 각 전략의 변환 결과를 확인하세요</p>
+
+<div class="wrap">
+<p class="section-label">현재 문제 — 같은 "좋은 성과"인데 숫자가 다 달라 보임</p>
+<div class="raw-bar">
+  <div class="raw-pill">z-VPH <span>164.700</span></div>
+  <div class="raw-pill">completion_rate <span>0.850000</span></div>
+  <div class="raw-pill">shorts_er <span>0.002100</span></div>
+  <div class="raw-pill">RPM <span>$0.00210</span></div>
+  <div class="raw-pill">final_score <span>2375.90</span></div>
+</div>
+
+<p class="section-label">8가지 전략 — 카드를 클릭하면 상세 변환 결과 확인</p>
+<div class="strategy-grid" id="stratGrid"></div>
+<div class="detail-panel" id="detailPanel"></div>
+
+<p class="section-label">최적 전략 — 4-Layer Hybrid</p>
+<div class="layer-box">
+  <div class="layer-head"><span class="layer-num">1</span>사용자가 처음 보는 것 — 색상+등급+점수+백분위</div>
+  <div class="layer-body"><div class="layer-demo"><span class="score-dot g"></span>Strong &nbsp;&nbsp; 88점 &nbsp;&nbsp; "Top 12%"</div></div>
+</div>
+<div class="layer-box">
+  <div class="layer-head"><span class="layer-num">2</span>호버/클릭 시 — 적응형 포맷</div>
+  <div class="layer-body"><div class="layer-demo">z-VPH: +164.7x &nbsp;|&nbsp; 완시청: 85.0% &nbsp;|&nbsp; 이탈율: 15.0%<br>ER: 0.21% &nbsp;|&nbsp; RPM: $0.002 &nbsp;|&nbsp; Score: 2,376pt</div></div>
+</div>
+<div class="layer-box">
+  <div class="layer-head"><span class="layer-num">3</span>상세 보기 (디버그 패널) — 전체 정밀도</div>
+  <div class="layer-body"><div class="layer-demo">Raw: 164.700000 (full precision) &nbsp;|&nbsp; 분포 차트: [====|=====]</div></div>
+</div>
+
+<div style="margin-top:1.5rem">
+<p class="section-label">이해도 연구 결과 (PubMed 2015, 의료 성과 지표)</p>
+<div class="research-bar"><div class="rb-label"><span>색상+카테고리 (Layer 1)</span><span style="font-weight:500;color:#1a1a2e">84.3%</span></div><div class="rb-track"><div class="rb-fill" style="width:84.3%;background:#639922"></div></div></div>
+<div class="research-bar"><div class="rb-label"><span>별점</span><span>70.6%</span></div><div class="rb-track"><div class="rb-fill" style="width:70.6%;background:#639922;opacity:.7"></div></div></div>
+<div class="research-bar"><div class="rb-label"><span>숫자만</span><span>62.0%</span></div><div class="rb-track"><div class="rb-fill" style="width:62%;background:#BA7517"></div></div></div>
+<div class="research-bar"><div class="rb-label"><span>바 차트</span><span>54.2%</span></div><div class="rb-track"><div class="rb-fill" style="width:54.2%;background:#E24B4A"></div></div></div>
+</div>
+</div>
+</div><!-- end #p2 -->
+
+<script>
+// Tab switching
+function switchTab(id) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Page 2 interactive
+const strategies=[
+  {id:0,badge:"❌",tier:"bad",label:"Raw 그대로",sub:"변환 없음",desc:"아무 처리도 하지 않은 원시 값. 스케일이 전부 달라 직관적으로 비교 불가능.",vals:["164.700","0.850000","0.002100","$0.00210","2375.90"],states:["bad","bad","bad","bad","bad"],pros:[],cons:["읽기 어려움","소수점 과다","0이 많음","자릿수 큼"]},
+  {id:1,badge:"①",tier:"ok",label:"0-100 정규화",sub:"min-max",desc:"전체 데이터 범위를 0~100으로 압축. 이상치에 민감하고 분포가 극단적이면 왜곡됨.",vals:["99.2","42.5","21.0","9.4","99.5"],states:["good","ok","ok","ok","warn"],pros:["균일한 스케일"],cons:["이상치에 민감","압축 왜곡"]},
+  {id:2,badge:"②",tier:"ok",label:"백분위",sub:"percentile",desc:"전체 집단 내 상대적 위치. 직관적이지만 점수 간 실제 크기 차이가 사라짐.",vals:["Top 1%","Top 15%","Top 40%","Top 45%","Top 1%"],states:["good","good","ok","ok","good"],pros:["직관적","누구나 이해"],cons:["크기 차이 소실"]},
+  {id:3,badge:"③",tier:"ok",label:"Log + 0-100",sub:"로그 변환 후 정규화",desc:"왜도(skew)가 큰 분포에 로그 적용 후 스케일. 이상치 문제를 해결하지만 해석에 수학적 이해 필요.",vals:["88","42.5","31","18","92"],states:["good","ok","good","good","good"],pros:["이상치 해결","분산 개선"],cons:["계산 복잡","설명 어려움"]},
+  {id:4,badge:"④",tier:"ok",label:"등급제",sub:"S / A / B / C / D",desc:"구간을 나눠 등급 문자 부여. 즉각적으로 이해되나 정밀도 손실이 크고 경계선 근처 값이 억울해짐.",vals:["S","A","C","C","S"],states:["good","good","ok","ok","good"],pros:["즉각적 이해","설명 불필요"],cons:["정밀도 손실","경계 억울"]},
+  {id:5,badge:"⑤",tier:"ok",label:"유효숫자",sub:"2-3자리 반올림",desc:"의미 있는 숫자만 남기고 나머지 절사. 깔끔하지만 소수점 작은 값(ER, RPM)은 여전히 불편.",vals:["165","0.85","0.0021","$0.0021","2,376"],states:["good","good","warn","warn","good"],pros:["깔끔","신뢰감"],cons:["작은 소수 여전히 불편"]},
+  {id:6,badge:"⑥",tier:"good",label:"적응형 포맷",sub:"타입별 최적화",desc:"숫자 종류에 따라 다른 포맷 적용. 비율→%, 금액→통화, 배수→x. 각 메트릭에 최적화된 가장 자연스러운 표현.",vals:["+164.7x","85.0%","0.21%","$0.002","2,376pt"],states:["good","good","good","good","good"],pros:["타입별 최적","자연스러움","즉시 이해"],cons:["타입 분류 로직 필요"]},
+  {id:7,badge:"⑧",tier:"best",label:"색상+숫자 하이브리드",sub:"최고 이해도 84%",desc:"적응형 포맷 + 색상 인코딩 조합. 연구 기반 최고 이해도. 색상이 빠른 판단, 숫자가 정확한 값 제공.",vals:["🟢 165","🟢 85%","🟡 0.21%","🟡 $0.002","🟢 2,376"],states:["good","good","ok","ok","good"],pros:["최고 이해도 84.3%","색상+숫자 이중 인코딩","즉각 + 정밀"],cons:["색상 접근성 고려 필요"]},
+];
+const labels=["z-VPH","completion","shorts_er","RPM","final_score"];
+let active=7;
+
+function renderGrid(){
+  const g=document.getElementById('stratGrid');
+  g.innerHTML=strategies.map(s=>`
+    <div class="s-card${s.id===active?' active':''}" onclick="selectS(${s.id})">
+      <div class="s-badge ${s.tier}">${s.badge}</div>
+      <div class="s-title">${s.label}</div>
+      <div class="s-sub">${s.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderDetail(){
+  const s=strategies.find(x=>x.id===active);
+  const p=document.getElementById('detailPanel');
+  p.innerHTML=`
+    <div class="detail-title">${s.badge} ${s.label}</div>
+    <div class="detail-desc">${s.desc}</div>
+    <div class="metric-row2">
+      ${labels.map((l,i)=>`<div class="m-cell"><div class="m-label">${l}</div><div class="m-val ${s.states[i]}">${s.vals[i]}</div></div>`).join('')}
+    </div>
+    <div class="tags-row">
+      ${s.pros.map(t=>`<span class="tag pro">✓ ${t}</span>`).join('')}
+      ${s.cons.map(t=>`<span class="tag con">✗ ${t}</span>`).join('')}
+    </div>
+  `;
+}
+
+window.selectS=function(id){active=id;renderGrid();renderDetail()};
+renderGrid();
+renderDetail();
+</script>
+</body>
+</html>
