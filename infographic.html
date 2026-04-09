@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 코딩 전담 방법론 — 3-모델 검증</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=IBM+Plex+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --paper: #f4f0e8;
+    --paper-2: #e8e1d1;
+    --accent: #d4351c;
+    --accent-2: #ff6b35;
+    --green: #2d5016;
+    --mute: #6b6358;
+    --line: #0a0a0a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .serif { font-family: 'Fraunces', serif; font-weight: 900; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(212,53,28,0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: multiply;
+  }
+  main { position: relative; z-index: 3; }
+
+  header {
+    padding: 80px 60px 40px;
+    border-bottom: 3px double var(--ink);
+    background: var(--paper);
+  }
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 40px;
+    color: var(--mute);
+  }
+  .meta-row span::before { content: '◆ '; color: var(--accent); }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(48px, 9vw, 140px);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    margin-bottom: 24px;
+  }
+  h1 .slash { color: var(--accent); font-style: italic; }
+  .subtitle {
+    font-size: 18px;
+    max-width: 720px;
+    line-height: 1.4;
+    color: var(--mute);
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    margin-top: 20px;
+  }
+  .verdict-strip {
+    margin-top: 50px;
+    padding: 20px 30px;
+    background: var(--ink);
+    color: var(--paper);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .verdict-strip div b {
+    display: block;
+    font-size: 28px;
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-top: 6px;
+    color: var(--accent-2);
+  }
+
+  section { padding: 80px 60px; border-bottom: 1px solid var(--ink); }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::before {
+    content: ''; width: 40px; height: 1px; background: var(--accent);
+  }
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 40px;
+    max-width: 900px;
+  }
+  h2 em { color: var(--accent); font-style: italic; }
+
+  .battle {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 0;
+    margin-top: 30px;
+    border: 2px solid var(--ink);
+  }
+  .battle-side {
+    padding: 40px;
+    position: relative;
+  }
+  .battle-side.pro {
+    background: var(--paper-2);
+    border-right: 2px solid var(--ink);
+  }
+  .battle-side.con {
+    background: #1a1a1a;
+    color: var(--paper);
+  }
+  .battle-side h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 6px;
+  }
+  .battle-side .model {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+    margin-bottom: 20px;
+  }
+  .battle-side .score {
+    font-family: 'Fraunces', serif;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    margin: 20px 0;
+  }
+  .battle-side.pro .score { color: var(--green); }
+  .battle-side.con .score { color: var(--accent-2); }
+  .battle-side ul { list-style: none; margin-top: 20px; }
+  .battle-side li {
+    padding: 10px 0;
+    font-size: 14px;
+    border-bottom: 1px dashed currentColor;
+    line-height: 1.4;
+  }
+  .battle-side li::before { content: '→ '; font-weight: 700; }
+  .battle-vs {
+    background: var(--accent);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 900;
+    font-style: italic;
+  }
+
+  .synthesis-box {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 60px;
+    margin-top: 40px;
+    position: relative;
+  }
+  .synthesis-box::before {
+    content: 'CLAUDE OPUS 4.6 — FINAL SYNTHESIS';
+    position: absolute;
+    top: -12px;
+    left: 40px;
+    background: var(--accent);
+    color: var(--paper);
+    padding: 6px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+  .synthesis-box p {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+  .synthesis-box p strong {
+    color: var(--accent-2);
+    font-weight: 900;
+    font-style: italic;
+  }
+
+  .tier-grid { margin-top: 20px; }
+  .tier {
+    border: 2px solid var(--ink);
+    margin-bottom: 20px;
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+  }
+  .tier-head {
+    padding: 30px;
+    border-right: 2px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .tier-head .rank {
+    font-family: 'Fraunces', serif;
+    font-size: 96px;
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+  }
+  .tier.s .tier-head { background: var(--accent); color: var(--paper); }
+  .tier.s .rank { color: var(--paper); }
+  .tier.a .tier-head { background: var(--paper-2); }
+  .tier.b .tier-head { background: var(--paper); }
+  .tier-head .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 10px;
+    opacity: 0.85;
+  }
+  .tier-body { padding: 30px; }
+  .tier-body .timing {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .tier-files {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .file-card {
+    border-left: 3px solid var(--ink);
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.03);
+  }
+  .file-card .fname {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .file-card .fdesc { font-size: 13px; color: var(--mute); line-height: 1.3; }
+  .tier.s .file-card { background: rgba(212,53,28,0.08); border-left-color: var(--accent); }
+
+  .env-stack { display: flex; flex-direction: column; gap: 2px; margin-top: 30px; }
+  .env-item {
+    padding: 30px 40px;
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 30px;
+    align-items: center;
+    border: 2px solid var(--ink);
+  }
+  .env-item.gold { background: var(--ink); color: var(--paper); }
+  .env-item.silver { background: var(--paper-2); }
+  .env-item.bronze { background: var(--paper); }
+  .env-rank {
+    font-family: 'Fraunces', serif;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 0.85;
+  }
+  .env-item.gold .env-rank { color: var(--accent-2); }
+  .env-item.silver .env-rank { color: var(--accent); }
+  .env-name {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 6px;
+  }
+  .env-reason {
+    font-size: 14px;
+    line-height: 1.4;
+    opacity: 0.85;
+  }
+  .env-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 6px 12px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+
+  footer {
+    padding: 60px;
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+  }
+  footer .wisdom {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-style: italic;
+    line-height: 1.2;
+    max-width: 900px;
+    margin: 0 auto 40px;
+    font-weight: 400;
+  }
+  footer .wisdom strong { color: var(--accent-2); font-weight: 900; font-style: normal; }
+  footer .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 900px) {
+    header, section { padding: 60px 24px; }
+    .verdict-strip { grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+    .battle { grid-template-columns: 1fr; }
+    .battle-side.pro { border-right: none; border-bottom: 2px solid var(--ink); }
+    .battle-vs { padding: 20px; }
+    .tier { grid-template-columns: 1fr; }
+    .tier-head { border-right: none; border-bottom: 2px solid var(--ink); flex-direction: row; gap: 20px; }
+    .env-item { grid-template-columns: 60px 1fr; }
+    .env-tag { grid-column: 2; margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="meta-row">
+    <span>2026.04.09 / SEOUL</span>
+    <span>PAL MCP VERIFIED</span>
+    <span>3-MODEL CROSS-CHECK</span>
+  </div>
+  <h1>AI 코딩<br>방법론<span class="slash">/</span><em style="font-style:italic;">2026</em></h1>
+  <p class="subtitle">
+    1인 대형 프로젝트 개발자를 위한 md 파일 시스템 &mdash; GPT-5.2-pro,
+    Gemini 3 Pro, Claude Opus 4.6 세 모델이 찬반 교차검증한 1000점짜리
+    통합 방법론.
+  </p>
+  <div class="verdict-strip">
+    <div>GPT-5.2-PRO (FOR)<b>8 / 10</b></div>
+    <div>GEMINI-3-PRO (AGAINST)<b>9 / 10</b></div>
+    <div>CLAUDE OPUS 4.6<b>SYNTHESIS</b></div>
+    <div>최종 파일 수<b>5 → 15</b></div>
+  </div>
+</header>
+
+<section>
+  <div class="section-label">PART 01 &mdash; Cross-examination</div>
+  <h2>두 <em>prodigy</em>의<br>정반대 평결.</h2>
+  <p style="font-size:17px; max-width:720px; color:var(--mute); line-height:1.5;">
+    같은 질문, 정반대 답변. 한쪽은 "현존 최선"이라 하고 다른 쪽은
+    "관료주의적 비대"라 한다. 진실은 그 사이에.
+  </p>
+
+  <div class="battle">
+    <div class="battle-side pro">
+      <h3>FOR — 찬성</h3>
+      <p class="model">GPT-5.2-PRO · OPENAI</p>
+      <div class="score">8<span style="font-size:36px; opacity:0.5;">/10</span></div>
+      <ul style="list-style: none; margin-top: 20px;">
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ Spec Kit 4파일 = 에이전트가 추측하지 않는 SSOT</li>
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ AGENTS.md + CLAUDE.md 이중표준은 벤더-세이프</li>
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ LEARN.md는 1인 장기 생산성에 직접 기여</li>
+        <li style="padding: 10px 0;">→ MVP → 확장 로드맵이 1인 현실에 우수</li>
+      </ul>
+    </div>
+    <div class="battle-vs">vs</div>
+    <div class="battle-side con">
+      <h3>AGAINST — 반대</h3>
+      <p class="model">GEMINI-3-PRO · GOOGLE</p>
+      <div class="score">9<span style="font-size:36px; opacity:0.5;">/10</span></div>
+      <ul style="list-style: none; margin-top: 20px;">
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ 14+ 파일은 1인에게 재앙 — context 분산</li>
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ markdown lint 강제 = AI가 메타작업 루프에 빠짐</li>
+        <li style="padding: 10px 0; border-bottom: 1px dashed currentColor;">→ Karpathy tmux는 ML 실험용이지 feature 병렬 아님</li>
+        <li style="padding: 10px 0;">→ 대안: AGENTS + LEARN + scratchpad 단 3개</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="synthesis-box">
+    <p>
+      양쪽 다 맞다. <strong>Gemini의 Karpathy 오해 지적은 정확</strong>하다
+      &mdash; autoresearch는 ML 실험 병렬화다. 정답은 중간:
+      <em>Tier S를 5개로 압축, scratchpad 추가, 병렬은 독립 작업만.</em>
+    </p>
+  </div>
+</section>
+
+<section style="background: var(--paper-2);">
+  <div class="section-label">PART 02 &mdash; File architecture</div>
+  <h2>세 줄 <em>로드맵.</em></h2>
+  <p style="font-size:17px; max-width:720px; color:var(--mute);">
+    Day 1부터 모든 걸 설치하지 말 것. 병목이 보일 때만 확장.
+  </p>
+
+  <div class="tier-grid">
+    <div class="tier s">
+      <div class="tier-head">
+        <div class="rank">S</div>
+        <div class="label">DAY 1 / ESSENTIAL</div>
+      </div>
+      <div class="tier-body">
+        <div class="timing">⚡ 지금 당장 설치</div>
+        <div class="tier-files">
+          <div class="file-card">
+            <span class="fname">AGENTS.md</span>
+            <span class="fdesc">모든 AI 도구의 universal baseline. 60,000+ repos 표준.</span>
+          </div>
+          <div class="file-card">
+            <span class="fname">CLAUDE.md</span>
+            <span class="fdesc">AGENTS.md import + Claude 전용 행동 규칙.</span>
+          </div>
+          <div class="file-card">
+            <span class="fname">LEARN.md</span>
+            <span class="fdesc">오답노트. 같은 실수 반복 방지.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="wisdom">
+    <strong>"Day 1은 AGENTS.md + LEARN.md 두 개로 시작하라.<br>
+    병목이 보일 때만 확장하라."</strong>
+  </p>
+  <div class="meta">
+    CROSS-VERIFIED BY GPT-5.2-PRO × GEMINI-3-PRO × CLAUDE OPUS 4.6<br>
+    2026.04.09 · SEOUL
+  </div>
+</footer>
+
+</main>
+</body>
+</html>
