@@ -1,106 +1,199 @@
-# Technology Stack
+# Technology Stack: YouTube Scoring & Hook Library System
 
-**Project:** YouTube Video Automation Pipeline
-**Researched:** 2026-04-01
+**Project:** YouTube Video/Channel Scoring System + Hook Library
+**Researched:** 2026-04-02
+**Overall Confidence:** HIGH
 
-## Orchestration Decision: n8n vs Python vs Hybrid
+---
 
-This is the single most consequential architecture decision for the project.
+## Context
 
-### Comparison Matrix
+This stack targets a **data collection and scoring pipeline** — fundamentally different from the video generation pipeline. The system:
+1. Calls YouTube Data API v3 to collect video/channel statistics
+2. Calculates 24 scoring metrics (VPH, ER, z-scores, HotScore, RPM Proxy, Evergreen Ratio, etc.)
+3. Stores append-only data in SQLite via SQLModel
+4. Syncs scored results to Google Sheets as the dashboard UI
+5. Manages a Hook Library (hooks, titles, thumbnails)
 
-| Criterion | n8n | Python (FastAPI + Temporal) | Hybrid (n8n + Python services) |
-|-----------|-----|---------------------------|-------------------------------|
-| **Dev speed (initial)** | Fast (visual, drag-drop) | Slower (code everything) | Medium |
-| **Dev speed (at scale)** | Slow (100-node JSON nightmare) | Fast (refactor, test, reuse) | Medium |
-| **GPU task routing** | None native | Temporal: native Task Queue routing | Python handles GPU |
-| **Error handling** | Basic retry per node | Temporal: durable execution, auto-resume | Split responsibility |
-| **Git versioning** | One giant JSON blob | Normal code files, proper diffs | Mixed |
-| **Cost control** | Poor (token waste in visual builders) | Excellent (prune before model calls) | Good |
-| **Video processing** | Must shell out to external | Native FFmpeg/subprocess integration | Python handles heavy |
-| **Multi-channel mgmt** | Painful at 5+ channels | Config-driven, loop over channels | Mixed |
-| **Team collaboration** | Difficult (JSON merge conflicts) | Standard code review workflow | Split |
-| **Debugging** | Visual but shallow | Full stack traces, breakpoints | Split |
-| **Community/ecosystem** | Growing but shallow for ML | Massive Python ML ecosystem | Both |
-
-### Recommendation: Python-first with FastAPI + Temporal
-
-**Confidence: HIGH**
-
-For a multi-channel video automation pipeline with GPU workloads, heavy media processing, and 5+ production channels, **n8n is the wrong tool**. The reasons:
-
-1. **GPU routing**: Temporal natively routes tasks to GPU workers vs CPU workers via Task Queues. n8n has no equivalent.
-2. **Video pipeline = multi-step stateful workflow**: Temporal's durable execution model (used by Washington Post for 600% video processing improvement, and by Descript for AI video workflows) is purpose-built for this.
-3. **5+ channels = config, not copy-paste**: Python lets you parameterize channel configs. In n8n, you'd duplicate workflows.
-4. **Cost**: n8n visual builders waste tokens (one demo burned 70K tokens / $0.45 on a single query). Python lets you prune and optimize.
-5. **Maturity for ML/AI**: The entire AI/ML ecosystem is Python-native. ComfyUI, IndexTTS, FFmpeg wrappers -- all Python.
-
-**When n8n remains useful**: Keep existing n8n workflows for simple trigger-based tasks (Google Sheets webhook -> notify, simple scheduling) during migration. Do NOT invest in expanding them.
+The parent project already uses Python 3.12+, FastAPI, SQLite/SQLModel, and gspread. This scoring system extends that existing stack.
 
 ---
 
 ## Recommended Stack
 
-### Core Framework
+### Core Framework (Inherited from Parent Project)
 
 | Technology | Version | Purpose | Why | Confidence |
 |------------|---------|---------|-----|------------|
-| **Python** | 3.12+ | Primary language | ML/AI ecosystem, ComfyUI native, FFmpeg wrappers | HIGH |
-| **FastAPI** | 0.115+ | REST API layer | Async, fast, OpenAPI docs, Depends() DI | HIGH |
-| **Temporal** | Python SDK 1.16+ | Workflow orchestration | Durable execution, GPU task routing, auto-retry, state persistence. Used by WashPost for video processing. | HIGH |
-| **Redis** | 7.x | Cache + message broker | Temporal worker coordination, result caching | HIGH |
+| **Python** | 3.12+ | Primary language | Already established, statistics ecosystem, type hints | HIGH |
+| **FastAPI** | 0.115+ | REST API + scheduled task host | Lifespan events for scheduler init, existing codebase | HIGH |
+| **SQLite** | 3.45+ | Primary database | Append-only pattern works perfectly — no row updates needed, just INSERT. ACID, zero-ops | HIGH |
+| **SQLModel** | 0.0.37 | ORM | Latest stable (Feb 2026). Pydantic v2 native. For append-only tables, use it for INSERT only — never UPDATE scored snapshots | HIGH |
 
-### AI / Generation Models
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| **Qwen3-14B** (local via Ollama) | Latest | Script generation | Best value for creative writing, Korean support, zero API cost | HIGH |
-| **Gemini 2.5 Pro** (cloud API) | Latest | Complex script generation, fact-checking | Longer context, better reasoning for complex topics | MEDIUM |
-| **ComfyUI** | Latest | Image generation orchestration | Headless API mode, exports workflow as JSON, massive node ecosystem | HIGH |
-| **SDXL** (local) | SDXL 1.0 + community checkpoints | Image generation (primary) | Runs well on 8GB VRAM, massive LoRA ecosystem, 5-10s per image | HIGH |
-| **FLUX Q4 GGUF** (local) | FLUX.1-dev quantized | Image generation (high quality) | 90% of full quality on 8GB via Q4 quantization, 45-60s per image | MEDIUM |
-| **fal.ai** | API | Cloud image/video generation fallback | 600+ models, single API key, $0.05-0.40/sec video, fast cold starts (5-10s) | HIGH |
-| **WAN 2.2/2.5** via fal.ai | Latest | Video generation (image-to-video) | $0.05-0.10/sec, LoRA support, high motion diversity | HIGH |
-| **IndexTTS-2** | Latest | Korean TTS (primary) | Zero-shot, Korean native, 150ms streaming latency, 30-50% fewer pronunciation errors vs v1 | HIGH |
-| **VibeVoice** (Microsoft) | Realtime-0.5B | Multi-character TTS (4 speakers) | Up to 4 distinct speakers, 90min synthesis, experimental Korean support | MEDIUM |
-| **MeloTTS** | Latest | Korean TTS (lightweight fallback) | Lightweight, Korean support, good for batch processing | MEDIUM |
-
-### Media Processing
+### YouTube Data API Integration
 
 | Technology | Version | Purpose | Why | Confidence |
 |------------|---------|---------|-----|------------|
-| **FFmpeg** | 7.x | Video assembly, transitions, encoding | Industry standard, hardware-accelerated encoding (NVENC on RTX 4070) | HIGH |
-| **ffmpeg-python** | 0.2.0 | FFmpeg Python wrapper | Direct filter graph control, complex chains for slideshows/transitions | HIGH |
-| **MoviePy** | 2.x | High-level video editing | Pythonic API for crossfades, text overlays, compositing. v2 is current. | MEDIUM |
-| **Pillow** | 10.x | Image manipulation | Thumbnail generation, text overlay, image preprocessing | HIGH |
+| **google-api-python-client** | 2.193+ | YouTube Data API v3 client | Official Google client. Weekly releases. v2.193.0 (Mar 2026). Discovery docs now bundled (no network fetch at init) | HIGH |
+| **google-auth** | 2.x | API authentication | Service account auth for API key usage; OAuth2 if channel management needed later | HIGH |
 
-### Data Layer
+**Critical API Pattern — Batch 50 IDs per call:**
+```python
+# videos.list costs 1 quota unit regardless of how many IDs (max 50)
+# 10,000 daily quota = 500,000 videos/day at 50 per call
+request = youtube.videos().list(
+    part="snippet,statistics,contentDetails",
+    id=",".join(video_ids[:50]),  # HARD LIMIT: 50 IDs max
+    fields="items(id,snippet(title,publishedAt,channelId,categoryId),"
+           "statistics(viewCount,likeCount,commentCount),"
+           "contentDetails(duration))"  # Use fields= to reduce response size
+)
+```
+
+**Quota Budget for Scoring System:**
+
+| Operation | Cost/call | IDs/call | Daily budget (10K units) |
+|-----------|-----------|----------|--------------------------|
+| `videos.list` | 1 unit | 50 | 500,000 videos |
+| `channels.list` | 1 unit | 50 | 500,000 channels |
+| `search.list` | **100 units** | N/A | 100 searches |
+| `videos.insert` (upload) | 1,600 units | 1 | 6 uploads |
+
+**Rule: NEVER use `search.list` for data collection.** At 100 units/call, it destroys your quota. Instead, collect video IDs from channel uploads playlists (`playlistItems.list` at 1 unit) or RSS feeds (zero API cost), then batch with `videos.list`.
+
+### Scheduling
 
 | Technology | Version | Purpose | Why | Confidence |
 |------------|---------|---------|-----|------------|
-| **SQLite** (via SQLModel) | 3.45+ | Primary database | Zero-ops, ACID, file-based, sufficient for single-server pipeline | HIGH |
-| **Google Sheets** | API v4 | Human-facing data entry/dashboard | Keep as INPUT layer only, not source of truth. Familiar to content team. | HIGH |
-| **SQLModel** | 0.0.16+ | ORM | Pydantic + SQLAlchemy, type-safe, FastAPI-native | HIGH |
+| **APScheduler** | 3.10.4 | Cron-like job scheduling | Stable production release. In-process, no external broker needed. SQLite job store for persistence across restarts | HIGH |
 
-### Infrastructure
+**Why APScheduler 3.x, NOT 4.0:**
+- APScheduler 4.0 is **pre-release only** as of April 2026. The maintainer explicitly warns it "may change in backwards incompatible fashion without any migration pathway."
+- 3.10.x is battle-tested, supports async via `AsyncIOScheduler`, and has SQLite-backed job stores.
+- The scoring system needs simple cron triggers (every 6h, daily), not distributed task queues.
+
+**Why NOT alternatives:**
+
+| Alternative | Why Not |
+|-------------|---------|
+| `schedule` (PyPI) | No persistence (jobs lost on restart), no async, no job store | 
+| Celery Beat | Requires Redis/RabbitMQ broker — massive overkill for cron triggers |
+| Temporal schedules | Already in the parent project for video pipeline, but wiring Temporal for simple "fetch YouTube stats every 6h" is over-engineering |
+| OS crontab | No visibility, no persistence tracking, no integration with FastAPI |
+
+**APScheduler Configuration Pattern:**
+```python
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+
+scheduler = AsyncIOScheduler(
+    jobstores={"default": SQLAlchemyJobStore(url="sqlite:///data/jobs.db")},
+    job_defaults={"coalesce": True, "max_instances": 1},  # Prevent overlap
+)
+scheduler.add_job(collect_and_score, "cron", hour="*/6", id="score_cycle")
+```
+
+### Google Sheets Sync
 
 | Technology | Version | Purpose | Why | Confidence |
 |------------|---------|---------|-----|------------|
-| **Docker** | 24+ | Containerization | Isolate ComfyUI, Temporal, workers | HIGH |
-| **Ollama** | Latest | Local LLM serving | OpenAI-compatible API, easy model management, runs Qwen3 locally | HIGH |
-| **YouTube Data API v3** | v3 | Video upload automation | 6 uploads/day per project (1,600 units each, 10,000 daily quota). Use multiple GCP projects for 5+ channels. | HIGH |
+| **gspread** | 6.2.1 | Google Sheets read/write | Latest stable (2026). service_account() auth. Batch operations built-in | HIGH |
+
+**Rate Limits (CRITICAL):**
+- **300 requests/60s per project** (Google Sheets API v4)
+- **60 requests/60s per user**
+- No daily limit if you stay within per-minute quotas
+
+**Best Practices for Scoring Dashboard Sync:**
+
+1. **Use `batch_update()` for scored results** — one API call per sheet update, not one per cell:
+   ```python
+   worksheet.batch_update([
+       {"range": "A2:Z50", "values": scored_rows}
+   ])
+   ```
+2. **Use `batch_get()` to read multiple ranges** in a single call
+3. **Implement exponential backoff** for 429 errors (gspread does NOT auto-retry by default)
+4. **Buffer at 250 req/min** (not 300) to leave headroom
+5. **Consider `gspread_asyncio`** (v2.0.1) if sync blocking becomes an issue — provides 1.1s auto-delay between calls
+
+**Anti-pattern: Per-cell updates.**
+The existing `sheets_service.py` uses `update_cell()` per field. For the scoring system, this MUST be replaced with batch operations. Writing 50 scored videos x 24 metrics = 1,200 individual cell updates = instant quota death. Use `batch_update()` instead: 1 call.
+
+### Statistical Computation
+
+| Technology | Version | Purpose | Why | Confidence |
+|------------|---------|---------|-----|------------|
+| **NumPy** | 2.4.4 | Array math, z-score, normalization | Latest stable (Mar 2026). Vectorized ops handle 10K+ videos in <10ms. Already a transitive dependency | HIGH |
+| **statistics** (stdlib) | built-in | Simple mean/stdev for small datasets | Zero dependency. Use for single-metric calculations only | HIGH |
+
+**Why NumPy, NOT SciPy:**
+- `scipy.stats.zscore()` is just a thin wrapper around NumPy's mean/std. It adds a 30MB dependency for one function.
+- For 24 scoring metrics across hundreds of videos, NumPy's vectorized operations are sufficient and faster than per-row Python loops.
+- If you later need distribution fitting or statistical tests, THEN add SciPy. Not before.
+
+**Why NOT scikit-learn StandardScaler:**
+- StandardScaler is for ML preprocessing pipelines (fit/transform pattern). Scoring metrics need explicit formulas (VPH = views / hours_since_publish), not generic scaling.
+- Overkill dependency (scikit-learn pulls in SciPy + joblib + threadpoolctl).
+
+**Z-Score Implementation (Pure NumPy):**
+```python
+import numpy as np
+
+def z_scores(values: np.ndarray) -> np.ndarray:
+    """Population z-scores. Returns 0 for constant arrays."""
+    std = np.std(values)
+    if std == 0:
+        return np.zeros_like(values)
+    return (values - np.mean(values)) / std
+```
+
+**Scoring Metrics that Benefit from Vectorized NumPy:**
+- VPH (Views Per Hour): `views / hours_since_publish`
+- Engagement Rate: `(likes + comments) / views`
+- Z-scores across any metric dimension
+- HotScore (Reddit-style decay): `log10(max(score, 1)) + sign * seconds / 45000`
+- Percentile ranks: `np.searchsorted(np.sort(values), values) / len(values)`
+
+### Testing
+
+| Technology | Version | Purpose | Why | Confidence |
+|------------|---------|---------|-----|------------|
+| **pytest** | 8.x | Test framework | De facto standard. 75%+ Python projects use it. Fixtures, parametrize, markers | HIGH |
+| **pytest-cov** | 5.x | Coverage reporting | `--cov=src --cov-report=term-missing` — required by project conventions | HIGH |
+| **polyfactory** | 3.3.0 | Mock data factories | Generates valid Pydantic/SQLModel instances from type hints. Replaces hand-written fixtures for scored video models | HIGH |
+| **time-machine** | 2.x | Time mocking | Testing time-dependent scoring (VPH, HotScore decay) requires freezing time. Superior to `freezegun` (C extension, faster, no side effects) | MEDIUM |
+| **respx** | 0.22+ | httpx mock | Mock YouTube API responses without hitting real API. Works with httpx (used by parent project) | MEDIUM |
+
+**Testing Patterns for Scoring Pipeline:**
+
+1. **Deterministic scoring tests**: Use `polyfactory` to generate `VideoSnapshot` models with known values, verify computed scores match expected formulas
+2. **Time-dependent tests**: Use `time-machine` to freeze `datetime.utcnow()` for VPH and HotScore calculations
+3. **API response mocking**: Use `respx` or `unittest.mock.patch` to simulate YouTube API responses with known statistics
+4. **Boundary tests**: Zero views, zero hours (division by zero), negative values, NaN propagation
+5. **Snapshot regression**: Store golden scored outputs, compare against future runs to catch formula drift
+
+```python
+# Example: Polyfactory for VideoSnapshot
+from polyfactory.factories.pydantic_factory import ModelFactory
+
+class VideoSnapshotFactory(ModelFactory):
+    __model__ = VideoSnapshot
+    view_count = 1000
+    like_count = 50
+    comment_count = 10
+    published_at = datetime(2026, 1, 1)
+```
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| **Pydantic** | 2.x | Data validation | All API schemas, config objects |
-| **gspread** | 6.x | Google Sheets Python client | Sync Sheets data to SQLite |
-| **google-api-python-client** | 2.x | YouTube upload | OAuth2 + videos.insert |
-| **httpx** | 0.27+ | Async HTTP client | Calling fal.ai, ComfyUI API |
-| **Jinja2** | 3.x | Template engine | Script templates per channel/niche |
-| **structlog** | 24.x | Structured logging | Pipeline observability |
-| **rich** | 13.x | CLI output | Development/debugging |
+| **Pydantic** | 2.x | Scoring config schemas, API response validation | All scored metric definitions, channel tracking configs |
+| **httpx** | 0.27+ | HTTP client (if using raw YouTube API) | Alternative to google-api-python-client for lighter footprint |
+| **structlog** | 24.x | Structured logging | Log every scoring cycle: videos processed, scores computed, errors |
+| **isodate** | 0.7+ | Parse ISO 8601 durations | YouTube `contentDetails.duration` returns "PT4M13S" format |
+| **python-dateutil** | 2.9+ | Date parsing/arithmetic | Parse `publishedAt` timestamps, compute hours since publish |
 
 ---
 
@@ -108,116 +201,66 @@ For a multi-channel video automation pipeline with GPU workloads, heavy media pr
 
 | Category | Recommended | Alternative | Why Not |
 |----------|-------------|-------------|---------|
-| Orchestration | Temporal | Celery + Redis | No durable execution, no native GPU routing, manual state management |
-| Orchestration | Temporal | n8n | Poor for GPU workloads, JSON versioning nightmare, token waste, no multi-channel config |
-| Orchestration | Temporal | Dramatiq | Python-only, single-core (GIL), no built-in monitoring, no workflow state |
-| Image Gen | SDXL (local) | FLUX full (local) | Needs 12GB+ VRAM at full precision, too slow at Q4 for batch |
-| Image Gen | SDXL (local) | PixArt-Sigma | Good quality/size ratio but smaller ecosystem, fewer LoRAs |
-| Video Gen | WAN via fal.ai | Sora 2 | $0.30-0.50/sec vs $0.05-0.10/sec, cost prohibitive at scale |
-| Video Gen | WAN via fal.ai | Local WAN 2.2 | 8GB VRAM insufficient for video gen models, cloud is correct choice |
-| TTS | IndexTTS-2 | CosyVoice 3 | IndexTTS-2 has better Korean support and lower latency |
-| TTS | IndexTTS-2 | Kokoro | Only 82M params, English-focused, weaker Korean |
-| Database | SQLite | PostgreSQL | Overkill for single-server pipeline, adds ops overhead |
-| Database | SQLite + Sheets | Google Sheets as SSOT | API quotas, no relations, no ACID, change tracking gaps |
-| LLM | Qwen3-14B local | GPT-4o API | Cost ($0/mo local vs $$$ API), Korean creative writing quality comparable |
-| LLM | Qwen3-14B local | Qwen3-235B cloud | 14B is sufficient for script gen, 235B is overkill |
-| FFmpeg wrapper | ffmpeg-python | subprocess raw | ffmpeg-python provides composable filter graphs, less error-prone |
-| FFmpeg wrapper | ffmpeg-python | ffmpeg-generator | Less mature, smaller community |
-
----
-
-## Architecture: Local vs Cloud Split
-
-### Local (RTX 4070 8GB)
-
-- **Image generation**: SDXL via ComfyUI (5-10s/image)
-- **FLUX Q4**: For hero images needing higher quality (45-60s/image)
-- **LLM inference**: Qwen3-14B via Ollama (script generation)
-- **TTS**: IndexTTS-2 / VibeVoice (Korean multi-character)
-- **FFmpeg**: Video assembly, transitions, encoding (NVENC acceleration)
-
-### Cloud APIs
-
-- **fal.ai**: Video generation (WAN 2.2/2.5), overflow image generation
-- **Gemini 2.5 Pro**: Complex content research, fact-checking
-- **YouTube Data API**: Video upload, metadata
-- **Google Sheets API**: Data input sync
-
-### Cost Estimate (per video)
-
-| Step | Local/Cloud | Estimated Cost |
-|------|-------------|---------------|
-| Script (Qwen3 local) | Local | $0.00 |
-| Images x10 (SDXL local) | Local | $0.00 |
-| Video clips x5 (WAN 2.2 via fal.ai, 5s each) | Cloud | ~$1.25-2.50 |
-| TTS (IndexTTS-2 local) | Local | $0.00 |
-| FFmpeg assembly | Local | $0.00 |
-| Thumbnail (SDXL local) | Local | $0.00 |
-| YouTube upload | Cloud | $0.00 (API) |
-| **Total per video** | | **~$1.25-2.50** |
-| **Monthly (1 video/day, 5 channels)** | | **~$190-380/mo** |
+| Scheduling | APScheduler 3.10 | APScheduler 4.0 | Pre-release, unstable API, "may change without migration pathway" |
+| Scheduling | APScheduler 3.10 | Celery Beat | Requires external broker (Redis/RMQ), overkill for cron triggers |
+| Scheduling | APScheduler 3.10 | `schedule` | No persistence, no async, jobs lost on restart |
+| Stats | NumPy | SciPy | 30MB for one function (zscore). NumPy does everything needed |
+| Stats | NumPy | scikit-learn | ML preprocessing tool, not metric computation. Huge transitive deps |
+| Stats | NumPy | Pure Python | 100x slower for vectorized operations on 1K+ rows |
+| YouTube client | google-api-python-client | youtube-data-api (wrapper) | Extra abstraction layer, less control over fields/parts, 0.0.17 is stale |
+| YouTube client | google-api-python-client | httpx raw | Works but lose auto-pagination, discovery schema, error types |
+| Sheets | gspread 6.2 | gspread_asyncio | Only add if blocking sync becomes a measured problem |
+| ORM | SQLModel 0.0.37 | Raw SQLAlchemy | SQLModel already in codebase, sufficient for append-only INSERTs |
+| ORM | SQLModel 0.0.37 | Peewee | Different ORM in same project = cognitive overhead |
+| Data factory | polyfactory 3.3 | Faker | Faker generates random strings, not valid model instances |
+| Time mock | time-machine | freezegun | freezegun monkey-patches datetime globally, slower, more side effects |
 
 ---
 
 ## Installation
 
 ```bash
-# Core framework
-pip install fastapi uvicorn sqlmodel httpx pydantic structlog rich
+# Scoring system dependencies (add to existing project)
+pip install google-api-python-client google-auth APScheduler numpy isodate python-dateutil
 
-# Temporal
-pip install temporalio
+# Already in project (no action needed):
+# fastapi, sqlmodel, gspread, pydantic, structlog, httpx, pytest, pytest-cov
 
-# Google APIs
-pip install gspread google-api-python-client google-auth-oauthlib
-
-# Media processing
-pip install ffmpeg-python moviepy Pillow
-
-# AI/ML
-pip install openai  # For Ollama OpenAI-compatible API
-
-# Dev dependencies
-pip install pytest pytest-cov ruff mypy
+# Dev dependencies for scoring tests
+pip install polyfactory time-machine respx
 ```
 
-```bash
-# System dependencies (via system package manager or Docker)
-# FFmpeg 7.x with NVENC support
-# Ollama (for local LLM serving)
-# ComfyUI (for image generation)
-# Docker + Docker Compose (for Temporal server)
-```
+---
 
-```bash
-# Temporal server (Docker)
-docker compose up temporal
-```
+## Key Integration Points with Parent Project
+
+| Component | How Scoring System Uses It |
+|-----------|---------------------------|
+| `src/models/` | Add new models: `VideoSnapshot`, `ChannelSnapshot`, `ScoredVideo`, `Hook` |
+| `src/services/sheets_service.py` | Extend with batch operations for scored data sync. Replace per-cell updates |
+| `src/config.py` | Add YouTube API key, scoring schedule config, tracked channel IDs |
+| `src/api/` | Add scoring endpoints: `/api/scores`, `/api/hooks`, `/api/channels/tracked` |
+| SQLite database | New tables alongside existing `content_items`, `pipeline_runs` |
+| FastAPI lifespan | Initialize APScheduler in app lifespan (alongside existing Temporal workers) |
 
 ---
 
 ## Sources
 
-- [n8n vs Python: Which keeps AI projects reliable](https://zenvanriel.nl/ai-engineer-blog/n8n-vs-python-ai-automation/)
-- [Why Custom Python is the Automation Endgame](https://negibamaxim.eu/en/blog/zapier-make-n8n-vs-custom-python-code)
-- [Build AI Research Agent: n8n vs Python 2026](https://www.searchcans.com/blog/build-ai-research-agent-n8n-vs-python-2026/)
-- [Best Local Image Generation Models 2026](https://awesomeagents.ai/guides/best-local-image-generation-models-2026/)
-- [FLUX 2 vs SDXL Comparison 2026](https://apatero.com/blog/flux-2-vs-stable-diffusion-xl-comparison-2026)
-- [Best GPU for Stable Diffusion 2026](https://offlinecreator.com/blog/best-gpu-for-stable-diffusion-2026)
-- [fal.ai Video Generation](https://fal.ai/video)
-- [WaveSpeedAI vs fal.ai](https://wavespeed.ai/blog/posts/fal-ai-review-2026/)
-- [Temporal: Video Processing at Washington Post](https://temporal.io/blog/temporal-supercharges-video-processing-at-the-washington-post)
-- [Orchestrating AI Tasks: Celery vs Temporal](https://dasroot.net/posts/2026/02/orchestrating-ai-tasks-celery-temporal/)
-- [Celery to Temporal Migration](https://dev.to/wintrover/from-celeryredis-to-temporal-a-journey-toward-idempotency-and-reliable-workflows-k1i)
-- [IndexTTS-2 GitHub](https://github.com/diodiogod/TTS-Audio-Suite)
-- [VibeVoice Microsoft](https://github.com/microsoft/VibeVoice)
-- [Best Open Source TTS Models 2026](https://bentoml.com/blog/exploring-the-world-of-open-source-text-to-speech-models)
-- [Best Open Source LLM for Creative Writing 2026](https://www.siliconflow.com/articles/en/best-open-source-llm-for-creative-writing-ideation)
-- [Qwen3 GitHub](https://github.com/QwenLM/Qwen3)
-- [YouTube Upload API Quotas 2026](https://zernio.com/blog/youtube-upload-api)
-- [YouTube API Quota Guide](https://getlate.dev/blog/youtube-api-limits-how-to-calculate-api-usage-cost-and-fix-exceeded-api-quota)
-- [ComfyUI API Programmatic Usage](https://deepwiki.com/Comfy-Org/ComfyUI/7-api-and-programmatic-usage)
-- [Google Sheets as Database Limitations](https://blog.coupler.io/how-to-use-google-sheets-as-database/)
-- [SQLite Renaissance 2026](https://dev.to/pockit_tools/the-sqlite-renaissance-why-the-worlds-most-deployed-database-is-taking-over-production-in-2026-3jcc)
-- [FFmpeg Python Guide](https://www.gumlet.com/learn/ffmpeg-python/)
-- [MoviePy v2](https://pypi.org/project/moviepy/)
+- [YouTube Data API v3 — Videos:list](https://developers.google.com/youtube/v3/docs/videos/list)
+- [YouTube API Quota Calculator](https://developers.google.com/youtube/v3/determine_quota_cost)
+- [YouTube API Quota Management 2026](https://zernio.com/blog/youtube-api-limits-how-to-calculate-api-usage-cost-and-fix-exceeded-api-quota)
+- [Track 100K Videos Without Hitting Quota](https://dev.to/siyabuilt/youtubes-api-quota-is-10000-unitsday-heres-how-i-track-100k-videos-without-hitting-it-5d8h)
+- [SQLModel Release Notes](https://sqlmodel.tiangolo.com/release-notes/) — v0.0.37 (Feb 2026)
+- [SQLModel PyPI](https://pypi.org/project/sqlmodel/)
+- [APScheduler PyPI](https://pypi.org/project/APScheduler/) — 3.10.4 stable, 4.0 pre-release
+- [APScheduler vs schedule](https://leapcell.io/blog/scheduling-tasks-in-python-apscheduler-versus-schedule)
+- [gspread 6.2.1 Documentation](https://docs.gspread.org/)
+- [Google Sheets API Usage Limits](https://developers.google.com/workspace/sheets/api/limits)
+- [gspread Batch Operations](https://docs.gspread.org/en/latest/user-guide.html)
+- [NumPy 2.4.4](https://pypi.org/project/numpy/) — Mar 2026
+- [SciPy stats.zscore](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.zscore.html)
+- [Z-Score Normalization in Python](https://spotintelligence.com/2025/02/14/z-score-normalization/)
+- [google-api-python-client 2.193.0](https://pypi.org/project/google-api-python-client/) — Mar 2026
+- [polyfactory 3.3.0](https://pypi.org/project/polyfactory/) — Feb 2026
+- [Pytest Best Practices for Data Pipelines](https://www.startdataengineering.com/post/python-datapipeline-integration-test/)

@@ -16,7 +16,7 @@ from temporalio import activity
 
 from src.models.channel_config import load_channel_config
 from src.models.provider import ModelSpec, ProviderType
-from src.services.comfyui_client import ComfyUIProvider
+from src.services.comfyui_client import ComfyUIProvider, ComfyUIZImageProvider
 from src.services.fal_client import FalImageProvider
 
 
@@ -59,8 +59,12 @@ async def generate_scene_image(params: ImageGenInput) -> ImageGenOutput:
 
     spec = ModelSpec.parse(config.image_model)
 
-    if spec.provider == ProviderType.local:
-        provider: ComfyUIProvider | FalImageProvider = ComfyUIProvider(
+    if spec.provider == ProviderType.local and spec.model == "zimage-turbo":
+        provider: ComfyUIProvider | ComfyUIZImageProvider | FalImageProvider = (
+            ComfyUIZImageProvider(base_url=settings.comfyui_url)
+        )
+    elif spec.provider == ProviderType.local:
+        provider = ComfyUIProvider(
             base_url=settings.comfyui_url,
             checkpoint=config.sdxl_checkpoint,
         )

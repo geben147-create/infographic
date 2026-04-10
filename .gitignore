@@ -23,3 +23,13 @@ alembic/versions/*.pyc
 # Test artifacts
 .coverage
 .temporal-test-server/
+
+# Windows System Files (DO NOT TRACK)
+*.dll
+*.exe
+*.sys
+*.msi
+*.ocx
+Thumbs.db
+.DS_Store
+WebThreatDefSvc/

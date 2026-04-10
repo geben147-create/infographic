@@ -160,7 +160,7 @@ def test_cost_summary_empty_db(client):
 
 def test_cost_summary_days_filter(client, engine):
     """GET /api/dashboard/costs?days=7 excludes runs older than 7 days."""
-    now = datetime(2026, 4, 2, 12, 0, 0, tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
     with Session(engine) as session:
         # recent run — within 7 days
         session.add(make_run(

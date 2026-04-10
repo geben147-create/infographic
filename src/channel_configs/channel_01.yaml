@@ -2,7 +2,7 @@ channel_id: channel_01
 niche: general
 language: ko
 video_model: "local:wan2gp"
-image_model: "local:sdxl-juggernaut"
+image_model: "local:zimage-turbo"
 tts_model: "local:kokoro"
 llm_model: "local:qwen3:14b"
 sdxl_checkpoint: "sd_xl_turbo_1.0_fp16.safetensors"

@@ -20,14 +20,14 @@ class TestChannelConfigLoading:
     """Both channel YAML files must load as valid ChannelConfig instances."""
 
     def test_channel_01_loads_with_local_providers(self):
-        """channel_01.yaml uses local providers: kokoro, sdxl-juggernaut, qwen3:14b."""
+        """channel_01.yaml uses local providers: kokoro, zimage-turbo, qwen3:14b."""
         from src.models.channel_config import load_channel_config
 
         config = load_channel_config("channel_01")
 
         assert config.channel_id == "channel_01"
         assert config.tts_model == "local:kokoro"
-        assert config.image_model == "local:sdxl-juggernaut"
+        assert config.image_model == "local:zimage-turbo"
         assert config.vgen_enabled is False
 
     def test_channel_02_loads_with_mixed_providers(self):
@@ -126,7 +126,7 @@ class TestModelSpecParsing:
         # Image model
         img_spec = ModelSpec.parse(config.image_model)
         assert img_spec.provider == ProviderType.local
-        assert img_spec.model == "sdxl-juggernaut"
+        assert img_spec.model == "zimage-turbo"
 
         # TTS model
         tts_spec = ModelSpec.parse(config.tts_model)

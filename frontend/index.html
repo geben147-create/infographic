@@ -3,52 +3,194 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Pipeline Dashboard</title>
+  <title>Studio — YouTube Pipeline</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>YouTube Pipeline Dashboard</h1>
-    <p id="last-updated">Last updated: --</p>
-  </header>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M9.5 7.5L16.5 12L9.5 16.5V7.5Z" fill="white"/>
+        </svg>
+      </div>
+      <span class="brand-text">Studio</span>
+    </div>
 
-  <main>
-    <section id="cost-summary">
-      <h2>Cost Summary (Last 30 Days)</h2>
-      <div id="cost-cards" class="card-grid">
-        <!-- Populated by JS: total card + per-channel cards -->
+    <div class="nav-section-label">General</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="#" class="nav-item" data-section="pipelines">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Pipelines
+      </a>
+      <a href="#" class="nav-item" data-section="costs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Costs
+      </a>
+    </nav>
+
+    <div class="nav-section-label">System</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item" data-section="health">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Health
+      </a>
+    </nav>
+
+    <div style="flex:1"></div>
+
+    <div class="sidebar-footer">
+      <div class="system-status" id="system-status">
+        <span class="status-dot"></span>
+        <span class="status-text">Connecting...</span>
+      </div>
+      <div class="update-time" id="last-updated">--</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+        <p class="page-subtitle" id="page-subtitle">Overview of your video pipeline</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refresh-btn" class="btn-icon" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <section class="stats-row" id="stats-row">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value" id="stat-total-runs">0</span>
+          <span class="stat-label">Total Runs</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value" id="stat-running">0</span>
+          <span class="stat-label">Running</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value" id="stat-ready">0</span>
+          <span class="stat-label">Ready to Upload</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value" id="stat-cost">$0.00</span>
+          <span class="stat-label">Cost (30 days)</span>
+        </div>
       </div>
     </section>
 
-    <section id="runs-section">
-      <h2>Pipeline Runs</h2>
-      <div class="filters">
-        <select id="channel-filter">
-          <option value="">All Channels</option>
-        </select>
-        <button id="refresh-btn" class="btn btn-refresh">Refresh</button>
+    <!-- Cost Breakdown -->
+    <section class="panel" id="cost-panel">
+      <div class="panel-header">
+        <h2>Cost Breakdown</h2>
+        <span class="panel-badge">Last 30 days</span>
+      </div>
+      <div class="cost-bar-container" id="cost-bars">
+        <div class="cost-empty">No cost data yet</div>
+      </div>
+    </section>
+
+    <!-- Pipeline Runs Table -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Pipeline Runs</h2>
+        <div class="panel-actions">
+          <select id="channel-filter" class="select-input">
+            <option value="">All Channels</option>
+          </select>
+        </div>
       </div>
       <div id="runs-error" class="error-banner" style="display:none;"></div>
-      <table id="runs-table">
-        <thead>
-          <tr>
-            <th>Workflow ID</th>
-            <th>Channel</th>
-            <th>Status</th>
-            <th>Cost (USD)</th>
-            <th>Started</th>
-            <th>Completed</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="runs-body">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
-      <div class="pagination">
-        <button id="prev-btn" disabled>Previous</button>
-        <span id="page-info">Page 1</span>
-        <button id="next-btn">Next</button>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Workflow</th>
+              <th>Channel</th>
+              <th>Status</th>
+              <th>Cost</th>
+              <th>Started</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="runs-body"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span class="table-info" id="table-info">0 runs</span>
+        <div class="pagination">
+          <button id="prev-btn" class="btn-page" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span id="page-info" class="page-num">1</span>
+          <button id="next-btn" class="btn-page">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Health Panel -->
+    <section class="panel" id="health-panel">
+      <div class="panel-header">
+        <h2>System Health</h2>
+      </div>
+      <div class="health-grid" id="health-grid">
+        <div class="health-item loading">
+          <span class="health-dot"></span>
+          <span class="health-name">Temporal</span>
+          <span class="health-val">--</span>
+        </div>
+        <div class="health-item loading">
+          <span class="health-dot"></span>
+          <span class="health-name">SQLite</span>
+          <span class="health-val">--</span>
+        </div>
+        <div class="health-item loading">
+          <span class="health-dot"></span>
+          <span class="health-name">Disk</span>
+          <span class="health-val">--</span>
+        </div>
       </div>
     </section>
   </main>
