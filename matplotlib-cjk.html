@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matplotlib CJK Font Configuration</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #1f6feb22;
+      border: 1px solid #1f6feb55;
+      color: #58a6ff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #f0f6fc;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+
+    .header h1 span { color: #58a6ff; }
+
+    .header p {
+      color: #8b949e;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b949e;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #21262d;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .font-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .font-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #0d1117;
+      border-radius: 6px;
+      border: 1px solid #21262d;
+    }
+
+    .font-rank {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .font-rank.primary   { background: #1f6feb; color: white; }
+    .font-rank.secondary { background: #21262d; color: #8b949e; }
+    .font-rank.fallback  { background: #161b22; color: #6e7681; border: 1px solid #30363d; }
+
+    .font-name {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e6edf3;
+      flex: 1;
+    }
+
+    .font-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .font-tag.cjk      { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb44; }
+    .font-tag.fallback { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .config-table tr { border-bottom: 1px solid #21262d; }
+    .config-table tr:last-child { border-bottom: none; }
+
+    .config-table td {
+      padding: 10px 12px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .config-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: #79c0ff;
+      width: 220px;
+    }
+
+    .config-table td:nth-child(2) {
+      color: #f0f6fc;
+      font-family: 'Courier New', monospace;
+    }
+
+    .config-table tr:hover td { background: #1c2128; }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+      color: #e6edf3;
+      white-space: pre;
+    }
+
+    .code-block .comment { color: #8b949e; }
+    .code-block .key     { color: #79c0ff; }
+    .code-block .value   { color: #a5d6ff; }
+    .code-block .sep     { color: #6e7681; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .info-box {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .info-box-label {
+      font-size: 11px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .info-box-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #58a6ff;
+      font-family: 'Courier New', monospace;
+    }
+
+    .tip {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-left: 3px solid #58a6ff;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #8b949e;
+      line-height: 1.6;
+    }
+
+    .tip strong { color: #58a6ff; }
+
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      color: #6e7681;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="badge">Matplotlib · CJK Support</div>
+      <h1>Matplotlib <span>CJK Font</span> Configuration</h1>
+      <p>E2B 샌드박스 환경에서 한/중/일 텍스트를 올바르게 렌더링하기 위한 matplotlibrc 설정</p>
+    </div>
+
+    <p class="section-title">Overview</p>
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="info-box-label">Primary Font</div>
+        <div class="info-box-value" style="font-size:13px">Noto Sans CJK JP</div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-label">Sans-serif Fallbacks</div>
+        <div class="info-box-value">8</div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-label">Backend</div>
+        <div class="info-box-value">Agg</div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-label">Unicode Minus</div>
+        <div class="info-box-value">False</div>
+      </div>
+    </div>
+
+    <p class="section-title">Sans-Serif Font Priority</p>
+    <div class="card" style="margin-bottom:24px">
+      <div class="tip" style="margin-top:0; margin-bottom:16px">
+        <strong>왜 CJK 폰트가 먼저?</strong> — Matplotlib의 폴백 동작 특성상 CJK 폰트가 리스트 앞에 없으면 CJK 글자가 깨진 □ 박스로 표시됩니다.
+      </div>
+      <div class="font-list">
+        <div class="font-item"><div class="font-rank primary">1</div><div class="font-name">Noto Sans CJK JP</div><div class="font-tag cjk">CJK Primary</div></div>
+        <div class="font-item"><div class="font-rank primary">2</div><div class="font-name">WenQuanYi Micro Hei</div><div class="font-tag cjk">CJK</div></div>
+        <div class="font-item"><div class="font-rank primary">3</div><div class="font-name">WenQuanYi Zen Hei</div><div class="font-tag cjk">CJK</div></div>
+        <div class="font-item"><div class="font-rank secondary">4</div><div class="font-name">Droid Sans Fallback</div><div class="font-tag cjk">CJK</div></div>
+        <div class="font-item"><div class="font-rank secondary">5</div><div class="font-name">AR PL UKai CN</div><div class="font-tag cjk">CJK</div></div>
+        <div class="font-item"><div class="font-rank secondary">6</div><div class="font-name">AR PL UMing CN</div><div class="font-tag cjk">CJK</div></div>
+        <div class="font-item"><div class="font-rank fallback">7</div><div class="font-name">DejaVu Sans</div><div class="font-tag fallback">Latin Fallback</div></div>
+        <div class="font-item"><div class="font-rank fallback">8</div><div class="font-name">Liberation Sans</div><div class="font-tag fallback">Latin Fallback</div></div>
+        <div class="font-item"><div class="font-rank fallback">9</div><div class="font-name">sans-serif</div><div class="font-tag fallback">System Default</div></div>
+      </div>
+    </div>
+
+    <p class="section-title">Key Settings</p>
+    <div class="card" style="margin-bottom:24px">
+      <table class="config-table">
+        <tr><td>font.family</td><td>sans-serif</td></tr>
+        <tr><td>axes.unicode_minus</td><td>False &nbsp;<span style="color:#8b949e;font-size:11px">← CJK 폰트의 마이너스 부호 깨짐 방지</span></td></tr>
+        <tr><td>backend</td><td>Agg &nbsp;<span style="color:#8b949e;font-size:11px">← Headless 환경용 (GUI 없음)</span></td></tr>
+        <tr><td>figure.dpi</td><td>100</td></tr>
+        <tr><td>savefig.dpi</td><td>150</td></tr>
+        <tr><td>savefig.bbox</td><td>tight</td></tr>
+        <tr><td>font.size</td><td>10.0</td></tr>
+        <tr><td>axes.titlesize</td><td>large</td></tr>
+        <tr><td>axes.labelsize</td><td>medium</td></tr>
+      </table>
+    </div>
+
+    <p class="section-title">Raw matplotlibrc</p>
+    <div class="code-block">
+      <pre><span class="comment"># Font configuration with fallback chain</span>
+<span class="comment"># IMPORTANT: CJK fonts must come first due to matplotlib fallback behavior</span>
+
+<span class="key">font.family</span>         <span class="sep">:</span> <span class="value">sans-serif</span>
+<span class="key">font.sans-serif</span>     <span class="sep">:</span> <span class="value">Noto Sans CJK JP, WenQuanYi Micro Hei, WenQuanYi Zen Hei, Droid Sans Fallback, AR PL UKai CN, AR PL UMing CN, DejaVu Sans, Liberation Sans, sans-serif</span>
+<span class="key">font.serif</span>          <span class="sep">:</span> <span class="value">Noto Serif CJK JP, Noto Serif CJK HK, Noto Serif CJK KR, Noto Serif CJK SC, Noto Serif CJK TC, AR PL UKai CN, AR PL UMing CN, DejaVu Serif, Liberation Serif, serif</span>
+<span class="key">font.monospace</span>      <span class="sep">:</span> <span class="value">Noto Sans Mono CJK JP, DejaVu Sans Mono, Liberation Mono, monospace</span>
+
+<span class="comment"># Fix minus sign rendering with CJK fonts</span>
+<span class="key">axes.unicode_minus</span>  <span class="sep">:</span> <span class="value">False</span>
+
+<span class="comment"># Default font sizes</span>
+<span class="key">font.size</span>           <span class="sep">:</span> <span class="value">10.0</span>
+<span class="key">axes.titlesize</span>      <span class="sep">:</span> <span class="value">large</span>
+<span class="key">axes.labelsize</span>      <span class="sep">:</span> <span class="value">medium</span>
+<span class="key">xtick.labelsize</span>     <span class="sep">:</span> <span class="value">medium</span>
+<span class="key">ytick.labelsize</span>     <span class="sep">:</span> <span class="value">medium</span>
+<span class="key">legend.fontsize</span>     <span class="sep">:</span> <span class="value">medium</span>
+<span class="key">figure.titlesize</span>    <span class="sep">:</span> <span class="value">large</span>
+
+<span class="comment"># Figure settings</span>
+<span class="key">figure.dpi</span>          <span class="sep">:</span> <span class="value">100</span>
+<span class="key">savefig.dpi</span>         <span class="sep">:</span> <span class="value">150</span>
+<span class="key">savefig.bbox</span>        <span class="sep">:</span> <span class="value">tight</span>
+
+<span class="comment"># Backend for headless environment</span>
+<span class="key">backend</span>             <span class="sep">:</span> <span class="value">Agg</span></pre>
+    </div>
+
+    <div class="tip">
+      <strong>사용법:</strong> 이 파일을 <code style="color:#a5d6ff">~/.config/matplotlib/matplotlibrc</code> 또는 프로젝트 루트에 저장하면 자동으로 적용됩니다. E2B 샌드박스에서는 sandbox 시작 시 해당 경로에 복사하세요.
+    </div>
+
+    <div class="footer" style="margin-top:40px">
+      YouTube Pipeline · Matplotlib CJK Config · E2B Sandbox
+    </div>
+
+  </div>
+</body>
+</html>
